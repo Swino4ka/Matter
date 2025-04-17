@@ -3,6 +3,11 @@ let matter = 0;
 let totalMatter = 0;
 let maxMatter = 0;
 let maxProduction = 0;
+let distillPoints = 0;
+let distillUpgrades = {
+  gen1Boost: false,
+  unlockHardPrestige: false
+};
 let gen1 = {
   amount: 0,
   cost: 10,
@@ -37,6 +42,9 @@ function updateUI() {
   if (rateEl) {
     rateEl.textContent = `Производство: ${rate.toFixed(2)}/сек`;
   }
+  if (tabContent && tabContent.querySelector("h3")?.textContent === "📊 Статистика") {
+    tabContent.innerHTML = tabs.stats();
+  }  
 }
 
 function generateMatter() {
@@ -59,6 +67,13 @@ setInterval(() => {
   const gen1 = generators[0];
   const boost = calculateTotalBoost();
   const gain = (gen1.amount * gen1.baseProduction * boost) / ticksPerSecond;
+  totalMatter += gain;
+  if (matter > maxMatter) {
+    maxMatter = matter;
+  }
+  if (gain * ticksPerSecond > maxProduction) {
+    maxProduction = gain * ticksPerSecond;
+  }
   matter += gain;
   updateUI();
 }, 100);
@@ -76,6 +91,10 @@ function saveGame() {
   localStorage.setItem("matterSave", JSON.stringify(saveData));
   updateLastSavedTime();
   console.log("Игра сохранена!");
+}
+
+function calculateDistillPoints() {
+  return Math.floor(Math.pow(matter / 1e6, 0.5));
 }
 
 function updateLastSavedTime() {
@@ -120,6 +139,37 @@ const tabButtons = document.querySelectorAll(".tabBtn");
 const tabContent = document.getElementById("tabContent");
 
 const tabs = {
+    prestige: () => {
+        const available = calculateDistillPoints();
+        let upgradesHtml = '';
+      
+        if (distillPoints > 0 || distillUpgrades.gen1Boost || distillUpgrades.unlockHardPrestige) {
+          upgradesHtml = `
+            <h4>🛒 Магазин</h4>
+            <ul>
+              <li>
+                Усиление Генератора 1 в 1.2x 
+                ${distillUpgrades.gen1Boost ? "✅" : `<button onclick="buyUpgrade('gen1Boost')">Купить (2 ОД)</button>`}
+              </li>
+              <li>
+                Разблокировка Слияний Реальностей 
+                ${distillUpgrades.unlockHardPrestige ? "✅" : `<button onclick="buyUpgrade('unlockHardPrestige')">Купить (10 ОД)</button>`}
+              </li>
+            </ul>
+          `;
+        }
+      
+        return `
+          <h3>💠 Престиж: Дестилляция</h3>
+          <p>Ты можешь получить <strong>${available}</strong> очков дестилляции (ОД).</p>
+          <div class="distill-controls">
+            <button onclick="performDistill()">Дестиллировать</button>
+            <button class="info-btn" onclick="openDistillInfo()">ℹ️</button>
+          </div>
+          <p><strong>Текущие очки дестилляции (ОД):</strong> ${distillPoints}</p>
+          ${upgradesHtml}
+        `;
+      },
     achievements: `<h3>🏆 Достижения</h3><p>Пока нет достижений.</p>`,
     stats: () => {
         let genList = generators.map((g, i) => `<li>${g.name}: ${g.amount}x</li>`).join('');
@@ -283,22 +333,6 @@ function calculateTotalBoost() {
   return totalBoost;
 }
 
-function passiveGeneration() {
-  const gen1 = generators[0];
-  const boost = calculateTotalBoost();
-  const gain = gen1.amount * gen1.baseProduction * boost;
-  totalMatter += gain;
-  if (matter > maxMatter) {
-    maxMatter = matter;
-  }
-  if (gain * ticksPerSecond > maxProduction) {
-    maxProduction = gain * ticksPerSecond;
-  }
-  matter += gain;
-  updateUI();
-}
-setInterval(passiveGeneration, 1000);
-
 document.getElementById("generateMatterBtn").addEventListener("click", () => {
   const gen1 = generators[0];
   const boost = calculateTotalBoost();
@@ -342,6 +376,42 @@ function spawnClickEffectCenter(text) {
   }, 1000);
 }
 
+function performDistill() {
+  const earned = calculateDistillPoints();
+  if (earned < 1) {
+    alert("Недостаточно материи для дестилляции.");
+    return;
+  }
+
+  distillPoints += earned;
+  matter = 0;
+
+  // можно обнулить статистику по желанию
+  // totalMatter = 0;
+
+  updateUI();
+  renderGenerators();
+  alert(`Ты получил ${earned} ОД!`);
+}
+
+function buyUpgrade(id) {
+  if (id === 'gen1Boost' && distillPoints >= 2 && !distillUpgrades.gen1Boost) {
+    distillPoints -= 2;
+    distillUpgrades.gen1Boost = true;
+  }
+
+  if (id === 'unlockHardPrestige' && distillPoints >= 10 && !distillUpgrades.unlockHardPrestige) {
+    distillPoints -= 10;
+    distillUpgrades.unlockHardPrestige = true;
+  }
+
+  updateUI();
+  tabContent.innerHTML = tabs.prestige(); // обновим UI
+}
+
+function calculateDistillPoints() {
+  return Math.floor(Math.pow(matter / 1e6, 0.5));
+}
 
 // === Старт игры ===
 loadGame();

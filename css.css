@@ -282,3 +282,25 @@ section h2 {
 .gen-price.too-expensive {
   color: #ff5252; /* красный */
 }
+
+.distill-controls {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-bottom: 10px;
+}
+
+.info-btn {
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  background: #2a303e;
+  color: #e1e5eb;
+  border: 1px solid #3a4152;
+  cursor: pointer;
+  max-width: 60px;
+}
+
+.info-btn:hover {
+  background: #3b4356;
+}
