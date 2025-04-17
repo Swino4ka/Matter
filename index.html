@@ -36,6 +36,31 @@
   </div>
 </div>
 
+<div id="realityInfoModal" class="modal hidden">
+    <div class="modal-content">
+      <span class="closeBtn" onclick="closeRealityInfo()">&times;</span>
+      <h2>О Слияниях Реальностей</h2>
+      <p>
+        Слияние Реальностей — это жёсткий престиж, который сбрасывает всё:
+        <ul>
+          <li>Материю</li>
+          <li>Генераторы</li>
+          <li>Очки Дестилляции и их апгрейды</li>
+        </ul>
+        <br/>
+        Но при этом ты получаешь <strong>множитель ко всему производству</strong>, который накапливается.
+        <br/><br/>
+        Множитель рассчитывается от общего количества собранной материи за всё время:
+        <br/>
+        <code>x = floor((totalMatter / 1e6)^0.25)</code>
+        <br/><br/>
+        Чем больше ты накопишь, тем больше будет буст.
+        <br/>
+        Бусты складываются, и остаются навсегда.
+      </p>
+    </div>
+  </div>  
+
   <div id="clickEffects"></div>
   <h1>Matter</h1>
   <div id="gameContainer">

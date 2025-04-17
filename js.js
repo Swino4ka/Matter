@@ -5,6 +5,8 @@ let maxMatter = 0;
 let maxProduction = 0;
 let hasDistilledOnce = false;
 let distillPoints = 0;
+let realityResets = 0;
+let realityBoost = 1;
 let distillUpgrades = {
   gen1Boost: false,
   unlockHardPrestige: false
@@ -15,9 +17,19 @@ let gen1 = {
   production: 1
 };
 
+function formatNumber(num) {
+  if (num >= 1e15) return num.toExponential(2).replace("+", "");
+  if (num >= 1e15) return (num / 1e15).toFixed(2) + "q";
+  if (num >= 1e12) return (num / 1e12).toFixed(2) + "t";
+  if (num >= 1e9) return (num / 1e9).toFixed(2) + "b";
+  if (num >= 1e6) return (num / 1e6).toFixed(2) + "m";
+  if (num >= 1e3) return (num / 1e3).toFixed(2) + "k";
+  return Math.floor(num).toString();
+}
+
 // === Обновление UI ===
 function updateUI() {
-  document.getElementById("matter").textContent = Math.floor(matter);
+  document.getElementById("matter").textContent = formatNumber(Math.floor(matter));
 
   generators.forEach((gen, index) => {
     if (!gen.unlocked) return;
@@ -27,7 +39,7 @@ function updateUI() {
   
     if (amountEl) amountEl.textContent = `${gen.amount}x`;
     if (priceEl) {
-      priceEl.textContent = `Цена: ${gen.cost}`;
+      priceEl.textContent = `Цена: ${formatNumber(gen.cost)}`;
       priceEl.classList.remove("affordable", "too-expensive");
       if (matter >= gen.cost) {
         priceEl.classList.add("affordable");
@@ -68,7 +80,7 @@ setInterval(() => {
   const gen1 = generators[0];
   const boost = calculateTotalBoost();
   const base = distillUpgrades.gen1Boost ? 1.2 : 1;
-  const gain = (gen1.amount * gen1.baseProduction * boost * base) / ticksPerSecond;
+  const gain = (gen1.amount * gen1.baseProduction * boost * base * realityBoost) / ticksPerSecond;
   totalMatter += gain;
   if (matter > maxMatter) {
     maxMatter = matter;
@@ -89,7 +101,9 @@ function saveGame() {
     totalMatter: totalMatter,
     maxMatter: maxMatter,
     maxProduction: maxProduction,
-    hasDistilledOnce
+    hasDistilledOnce,
+    realityResets,
+    realityBoost
   };
   localStorage.setItem("matterSave", JSON.stringify(saveData));
   updateLastSavedTime();
@@ -135,6 +149,8 @@ function loadGame() {
     maxMatter = data.maxMatter || 0;
     maxProduction = data.maxProduction || 0;
     hasDistilledOnce = data.hasDistilledOnce || false;
+    realityResets = data.realityResets || 0;
+    realityBoost = data.realityBoost || 1;
     if (hasDistilledOnce) {
       document.getElementById("openShopBtn").classList.remove("hidden");
     }
@@ -168,7 +184,7 @@ const tabs = {
         const available = calculateDistillPoints();
         const next = nextDistillCost();
       
-        return `
+        let html = `
           <h3>💠 Престиж: Дестилляция</h3>
           <p>Ты можешь получить <strong>${available}</strong> очков дестилляции (ОД).</p>
           <p><strong>Текущие очки дестилляции (ОД):</strong> ${distillPoints}</p>
@@ -178,18 +194,33 @@ const tabs = {
             <button class="info-btn" onclick="openDistillInfo()">ℹ️</button>
           </div>
         `;
-      },
+      
+        if (distillUpgrades.unlockHardPrestige) {
+          const currentMult = Math.max(1, Math.floor(Math.pow(totalMatter / 1e6, 0.25)));
+          html += `
+            <h4 style="margin-top: 30px;">🌀 Слияние Реальностей</h4>
+            <p>Сброс всего прогресса (включая генераторы и дестилляцию)</p>
+            <p><strong>Множитель производства после слияния:</strong> ${currentMult}x</p>
+            <button onclick="performRealityReset()">Слить реальность</button>
+            <button class="info-btn" onclick="openRealityInfo()">ℹ️</button>
+            <p><strong>Количество слияний:</strong> ${realityResets}</p>
+            <p><strong>Текущий буст производства:</strong> ${realityBoost.toFixed(2)}x</p>
+          `;
+        }
+      
+        return html;
+      },      
     achievements: `<h3>🏆 Достижения</h3><p>Пока нет достижений.</p>`,
     stats: () => {
         let genList = generators.map((g, i) => `<li>${g.name}: ${g.amount}x</li>`).join('');
         return `
           <h3>📊 Статистика</h3>
           <ul>
-            <li><strong>Текущая материя:</strong> ${Math.floor(matter)}</li>
-            <li><strong>Всего накоплено материи:</strong> ${Math.floor(totalMatter)}</li>
-            <li><strong>Максимум материи:</strong> ${Math.floor(maxMatter)}</li>
-            <li><strong>Макс. производство/сек:</strong> ${maxProduction.toFixed(2)}</li>
-            <li><strong>Всего генераторов:</strong> ${generators.reduce((a, g) => a + g.amount, 0)}</li>
+            <li><strong>Текущая материя:</strong> ${formatNumber(Math.floor(matter))}</li>
+            <li><strong>Всего накоплено материи:</strong> ${formatNumber(Math.floor(totalMatter))}</li>
+            <li><strong>Максимум материи:</strong> ${formatNumber(Math.floor(maxMatter))}</li>
+            <li><strong>Макс. производство/сек:</strong> ${formatNumber(maxProduction.toFixed(2))}</li>
+            <li><strong>Всего генераторов:</strong> ${formatNumber(generators.reduce((a, g) => a + g.amount, 0))}</li>
             <li><strong>По уровням:</strong><ul>${genList}</ul></li>
           </ul>
         `;
@@ -266,8 +297,8 @@ function renderGenerators() {
     section.innerHTML = `
     <h2>${gen.name}</h2>
     <div class="gen-meta">
-      <div class="gen-price" id="gen${index}-price">Цена: ${gen.cost}</div>
-      <div class="gen-amount" id="gen${index}-amount">${gen.amount}x</div>
+      <div class="gen-price" id="gen${index}-price">Цена: ${formatNumber(gen.cost)}</div>
+      <div class="gen-amount" id="gen${index}-amount">${formatNumber(gen.amount)}x</div>
     </div>
     <div class="generator-buttons">
       <button onclick="buyGenerator(${index}, 1)">Купить 1</button>
@@ -524,6 +555,41 @@ function createConfettiEffect() {
   }
 }
 
+function performRealityReset() {
+  if (!confirm("Ты точно хочешь слить реальность? Это сбросит всё, кроме достижений и статистики!")) return;
+
+  const currentMult = Math.max(1, Math.floor(Math.pow(totalMatter / 1e6, 0.25)));
+  realityResets++;
+  realityBoost *= currentMult;
+
+  // Полный сброс
+  matter = 0;
+  maxMatter = 0;
+  distillPoints = 0;
+  distillUpgrades = {
+    gen1Boost: false,
+    unlockHardPrestige: true // сохраняем СР
+  };
+
+  // сброс генераторов
+  generators.forEach((g, i) => {
+    g.amount = 0;
+    g.cost = Math.pow(10, i + 1);
+    g.unlocked = i === 0;
+  });
+
+  updateUI();
+  renderGenerators();
+  alert("Ты слил реальности. Всё... начинается заново. ✨");
+}
+
+function openRealityInfo() {
+  document.getElementById("realityInfoModal").classList.remove("hidden");
+}
+
+function closeRealityInfo() {
+  document.getElementById("realityInfoModal").classList.add("hidden");
+}
 
 
 // === Старт игры ===
