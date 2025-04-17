@@ -170,32 +170,74 @@ function renderGenerators() {
     const section = document.createElement("section");
 
     section.innerHTML = `
-      <h2>${gen.name}</h2>
-      <p>Количество: <span id="gen${index}-amount">${gen.amount}</span></p>
-      <p>Цена: <span id="gen${index}-cost">${gen.cost}</span></p>
-      <button onclick="buyGenerator(${index})">Купить</button>
+    <h2>${gen.name}</h2>
+    <p>Количество: <span id="gen${index}-amount">${gen.amount}</span></p>
+    <p>Цена: <span id="gen${index}-cost">${gen.cost}</span></p>
+    <div class="generator-buttons">
+      <button onclick="buyGenerator(${index}, 1)">Купить 1</button>
+      <button onclick="buyGenerator(${index}, 10)">Купить 10</button>
+      <button onclick="buyMaxGenerator(${index})">Купить макс</button>
+    </div>
     `;
+  
 
     container.appendChild(section);
   });
 }
 
-function buyGenerator(index) {
+function buyGenerator(index, amount = 1) {
   const gen = generators[index];
-  if (matter >= gen.cost) {
+  let bought = 0;
+
+  for (let i = 0; i < amount; i++) {
+    if (matter >= gen.cost) {
+      matter -= gen.cost;
+      gen.amount++;
+      gen.cost = Math.floor(gen.cost * 1.5);
+      bought++;
+
+      // Открытие следующего генератора
+      if (generators[index + 1] && !generators[index + 1].unlocked) {
+        generators[index + 1].unlocked = true;
+      }
+    } else {
+      break;
+    }
+  }
+
+  if (bought > 0) {
+    const gain = `+${bought} ${gen.name}`;
+    spawnClickEffectCenter(gain);
+  }
+
+  updateUI();
+  renderGenerators();
+}
+
+function buyMaxGenerator(index) {
+  const gen = generators[index];
+  let bought = 0;
+
+  while (matter >= gen.cost) {
     matter -= gen.cost;
     gen.amount++;
     gen.cost = Math.floor(gen.cost * 1.5);
+    bought++;
 
-    // Открытие следующего генератора
     if (generators[index + 1] && !generators[index + 1].unlocked) {
       generators[index + 1].unlocked = true;
     }
-
-    updateUI();
-    renderGenerators();
   }
+
+  if (bought > 0) {
+    const msg = `+${bought} ${gen.name}(ов)`;
+    spawnClickEffectCenter(msg);
+  }
+
+  updateUI();
+  renderGenerators();
 }
+
 
 function calculateTotalBoost() {
   let totalBoost = 1;
@@ -221,7 +263,41 @@ document.getElementById("generateMatterBtn").addEventListener("click", () => {
   updateUI();
 });
 
+document.getElementById("generateMatterBtn").addEventListener("click", (e) => {
+  const gen1 = generators[0];
+  const boost = calculateTotalBoost();
+  const gain = gen1.baseProduction * boost;
+  matter += gain;
+  updateUI();
+  spawnClickEffect(e.clientX, e.clientY, gain);
+});
 
+function spawnClickEffect(x, y, amount) {
+  const el = document.createElement("div");
+  el.className = "click-float";
+  el.style.left = `${x}px`;
+  el.style.top = `${y}px`;
+  el.textContent = `+${Math.floor(amount)}`;
+  document.getElementById("clickEffects").appendChild(el);
+
+  setTimeout(() => {
+    el.remove();
+  }, 1000);
+}
+
+function spawnClickEffectCenter(text) {
+  const el = document.createElement("div");
+  el.className = "click-float";
+  el.style.left = "50%";
+  el.style.top = "50%";
+  el.style.transform = "translate(-50%, -50%)";
+  el.textContent = text;
+  document.getElementById("clickEffects").appendChild(el);
+
+  setTimeout(() => {
+    el.remove();
+  }, 1000);
+}
 
 
 // === Старт игры ===

@@ -241,3 +241,18 @@ section h2 {
     opacity: 0;
   }
 }
+
+.generator-buttons {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.generator-buttons button {
+  max-width: none;
+  width: auto;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  flex: 1;
+}
