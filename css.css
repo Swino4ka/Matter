@@ -256,3 +256,29 @@ section h2 {
   font-size: 0.85rem;
   flex: 1;
 }
+
+.gen-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1e2330;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+
+.gen-price {
+  font-weight: 500;
+}
+
+.gen-amount {
+  color: #ccc;
+}
+.gen-price.affordable {
+  color: #7CFC00; /* зелёный */
+}
+
+.gen-price.too-expensive {
+  color: #ff5252; /* красный */
+}

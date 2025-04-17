@@ -12,10 +12,20 @@ function updateUI() {
 
   generators.forEach((gen, index) => {
     if (!gen.unlocked) return;
-    const amtEl = document.getElementById(`gen${index}-amount`);
-    const costEl = document.getElementById(`gen${index}-cost`);
-    if (amtEl) amtEl.textContent = gen.amount;
-    if (costEl) costEl.textContent = gen.cost;
+  
+    const amountEl = document.getElementById(`gen${index}-amount`);
+    const priceEl = document.getElementById(`gen${index}-price`);
+  
+    if (amountEl) amountEl.textContent = `${gen.amount}x`;
+    if (priceEl) {
+      priceEl.textContent = `Цена: ${gen.cost}`;
+      priceEl.classList.remove("affordable", "too-expensive");
+      if (matter >= gen.cost) {
+        priceEl.classList.add("affordable");
+      } else {
+        priceEl.classList.add("too-expensive");
+      }
+    }
   });
   const gen1 = generators[0];
   const boost = calculateTotalBoost();
@@ -171,15 +181,16 @@ function renderGenerators() {
 
     section.innerHTML = `
     <h2>${gen.name}</h2>
-    <p>Количество: <span id="gen${index}-amount">${gen.amount}</span></p>
-    <p>Цена: <span id="gen${index}-cost">${gen.cost}</span></p>
+    <div class="gen-meta">
+      <div class="gen-price" id="gen${index}-price">Цена: ${gen.cost}</div>
+      <div class="gen-amount" id="gen${index}-amount">${gen.amount}x</div>
+    </div>
     <div class="generator-buttons">
       <button onclick="buyGenerator(${index}, 1)">Купить 1</button>
       <button onclick="buyGenerator(${index}, 10)">Купить 10</button>
       <button onclick="buyMaxGenerator(${index})">Купить макс</button>
     </div>
     `;
-  
 
     container.appendChild(section);
   });
