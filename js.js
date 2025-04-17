@@ -8,6 +8,10 @@ let distillPoints = 0;
 let realityResets = 0;
 let realityBoost = 1;
 
+let uselessClicks = 0;
+let achHoverCount = 0;
+let statTabOpened = 0;
+let inputBuffer = "";
 let lastDistillTime = 0;
 let sessionCount = 1;
 let lastSessionTime = Date.now();
@@ -25,11 +29,6 @@ let gen1 = {
 };
 
 const allAchievements = [
-  { id: "matter100", title: "Начало", description: "Накопи 100 материи", condition: () => matter >= 100 },
-  { id: "matter1k", title: "Тысячник", description: "Накопи 1,000 материи", condition: () => matter >= 1000 },
-  { id: "matter10k", title: "Десятитысячник", description: "Накопи 10,000 материи", condition: () => matter >= 10000 },
-  { id: "distill1", title: "Чистота", description: "Соверши первую дестиляцию", condition: () => hasDistilledOnce },
-  { id: "reality1", title: "За гранью", description: "Слей реальность впервые", condition: () => realityResets >= 1 },
   {
     id: "matter100",
     title: "Первые шаги",
@@ -115,10 +114,30 @@ const allAchievements = [
     condition: () => getMatterRate() >= 1000
   },
   {
+    id: "statClicker",
+    title: "Цифры… везде цифры",
+    description: "Открой вкладку статистики 10 раз",
+    condition: () => statTabOpened >= 10
+  },  
+  {
+    id: "hover50times",
+    title: "Любопытный",
+    description: "Наведи на достижения 50 раз",
+    condition: () => achHoverCount >= 50
+  },  
+  {
+    id: "clickNothing",
+    title: "…и тишина",
+    description: "Нажми 10 раз по пустому месту на экране",
+    condition: () => uselessClicks >= 10,
+    type: "secret"
+  },  
+  {
     id: "secretImpossible",
     title: "🕳️ Ошибка симуляции",
     description: "Тебе не должно было это выпасть...",
-    condition: () => Math.floor(Math.random() * 1_000_000_000) === 0
+    condition: () => Math.floor(Math.random() * 1_000_000_000) === 0,
+    type: "secret"
   }
 ];
 
@@ -224,6 +243,12 @@ setInterval(() => {
   updateUI();
 }, 100);
 
+function getMatterRate() {
+  const gen1 = generators[0];
+  const boost = calculateTotalBoost();
+  return gen1.amount * gen1.baseProduction * boost * realityBoost * calculateAchievementBoost();
+}
+
 // === Сохранение игры ===
 function saveGame() {
   const saveData = {
@@ -254,8 +279,12 @@ function saveGame() {
 function openAchievementModal(id) {
   const ach = allAchievements.find(a => a.id === id);
   if (!ach) return;
-  document.getElementById("achModalTitle").textContent = ach.title;
-  document.getElementById("achModalDesc").textContent = ach.description;
+
+  const unlocked = achievements[ach.id];
+  const isSecret = ach.type === "secret" && !unlocked;
+
+  document.getElementById("achModalTitle").textContent = isSecret ? "???" : ach.title;
+  document.getElementById("achModalDesc").textContent = isSecret ? "???" : ach.description;
   document.getElementById("achievementModal").classList.remove("hidden");
 }
 
@@ -427,14 +456,27 @@ const tabs = {
       achievements: () => {
         const grid = allAchievements.map(a => {
           const unlocked = achievements[a.id];
+          const isSecret = a.type === "secret" && !unlocked;
+      
+          const title = isSecret ? "???" : a.title;
+          const symbol = unlocked ? "🏆" : (isSecret ? "❓" : "❔");
+      
           return `
-            <div class="ach-box ${unlocked ? 'ach-unlocked' : 'ach-locked'}" 
-                 title="${a.title}" 
+            <div class="ach-box ${unlocked ? 'ach-unlocked' : `ach-locked ${isSecret ? 'secret' : ''}`}"
+                 title="${title}" 
                  onclick="openAchievementModal('${a.id}')">
-              ${unlocked ? "🏆" : "❔"}
+              ${symbol}
             </div>
           `;
         }).join('');
+
+        setTimeout(() => {
+            document.querySelectorAll(".ach-box").forEach(el => {
+              el.addEventListener("mouseenter", () => {
+                achHoverCount++;
+              });
+            });
+          }, 50);          
       
         return `
           <h3>🏆 Достижения</h3>
@@ -470,11 +512,16 @@ tabButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     const tab = btn.dataset.tab;
     tabContent.innerHTML = typeof tabs[tab] === "function" ? tabs[tab]() : tabs[tab];
+    if (tab === "stats") statTabOpened++;
   });
 });
 
 document.addEventListener("click", (e) => {
   const id = e.target.id;
+
+  if (!e.target.closest(".modal, .ach-box, button, .tabBtn, section")) {
+    uselessClicks++;
+  }  
 
   if (id === "saveNowBtn") {
     saveGame();
@@ -485,6 +532,8 @@ document.addEventListener("click", (e) => {
     if (confirm("Ты уверен, что хочешь сбросить весь прогресс?")) {
       localStorage.removeItem("matterSave");
       location.reload();
+      manualResetUsed = true;
+      saveGame();
     }
   }
 
