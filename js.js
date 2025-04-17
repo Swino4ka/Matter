@@ -1,5 +1,8 @@
 // === Переменные игры ===
 let matter = 0;
+let totalMatter = 0;
+let maxMatter = 0;
+let maxProduction = 0;
 let gen1 = {
   amount: 0,
   cost: 10,
@@ -50,11 +53,6 @@ function buyGenerator() {
   }
 }
 
-function passiveGeneration() {
-  matter += gen1.amount * gen1.production;
-  updateUI();
-}
-
 let ticksPerSecond = 10; // 10 тиков в секунду = каждые 100мс
 
 setInterval(() => {
@@ -70,7 +68,10 @@ function saveGame() {
   const saveData = {
     matter,
     gen1,
-    lastSaved: Date.now()
+    lastSaved: Date.now(),
+    totalMatter: totalMatter,
+    maxMatter: maxMatter,
+    maxProduction: maxProduction
   };
   localStorage.setItem("matterSave", JSON.stringify(saveData));
   updateLastSavedTime();
@@ -91,9 +92,20 @@ function loadGame() {
     const data = JSON.parse(save);
     matter = data.matter || 0;
     gen1 = data.gen1 || { amount: 0, cost: 10, production: 1 };
+    totalMatter = data.totalMatter || 0;
+    maxMatter = data.maxMatter || 0;
+    maxProduction = data.maxProduction || 0;
+  
+    // открытие генераторов при загрузке
+    generators.forEach((gen, i) => {
+      if (i > 0 && generators[i - 1].amount > 0) {
+        gen.unlocked = true;
+      }
+    });
+  
     updateUI();
-    setTimeout(updateLastSavedTime, 100); // обновим, если вкладка открыта
-  }
+    setTimeout(updateLastSavedTime, 100);
+  }  
 }
 
 function autoSaveLoop() {
@@ -109,7 +121,20 @@ const tabContent = document.getElementById("tabContent");
 
 const tabs = {
     achievements: `<h3>🏆 Достижения</h3><p>Пока нет достижений.</p>`,
-    stats: `<h3>📊 Статистика</h3><p>Материи всего: <strong id="total-matter">${matter}</strong></p>`,
+    stats: () => {
+        let genList = generators.map((g, i) => `<li>${g.name}: ${g.amount}x</li>`).join('');
+        return `
+          <h3>📊 Статистика</h3>
+          <ul>
+            <li><strong>Текущая материя:</strong> ${Math.floor(matter)}</li>
+            <li><strong>Всего накоплено материи:</strong> ${Math.floor(totalMatter)}</li>
+            <li><strong>Максимум материи:</strong> ${Math.floor(maxMatter)}</li>
+            <li><strong>Макс. производство/сек:</strong> ${maxProduction.toFixed(2)}</li>
+            <li><strong>Всего генераторов:</strong> ${generators.reduce((a, g) => a + g.amount, 0)}</li>
+            <li><strong>По уровням:</strong><ul>${genList}</ul></li>
+          </ul>
+        `;
+      },
     settings: `
       <h3>⚙️ Настройки</h3>
       <button id="saveNowBtn">💾 Сохранить сейчас</button>
@@ -124,7 +149,7 @@ const tabs = {
 tabButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     const tab = btn.dataset.tab;
-    tabContent.innerHTML = tabs[tab] || "<p>Нет данных.</p>";
+    tabContent.innerHTML = typeof tabs[tab] === "function" ? tabs[tab]() : tabs[tab];
   });
 });
 
@@ -262,6 +287,13 @@ function passiveGeneration() {
   const gen1 = generators[0];
   const boost = calculateTotalBoost();
   const gain = gen1.amount * gen1.baseProduction * boost;
+  totalMatter += gain;
+  if (matter > maxMatter) {
+    maxMatter = matter;
+  }
+  if (gain * ticksPerSecond > maxProduction) {
+    maxProduction = gain * ticksPerSecond;
+  }
   matter += gain;
   updateUI();
 }
