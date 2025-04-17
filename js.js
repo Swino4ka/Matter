@@ -8,6 +8,7 @@ let distillPoints = 0;
 let realityResets = 0;
 let realityBoost = 1;
 
+let lastActivityTime = Date.now();
 let uselessClicks = 0;
 let achHoverCount = 0;
 let statTabOpened = 0;
@@ -126,6 +127,13 @@ const allAchievements = [
     condition: () => achHoverCount >= 50
   },  
   {
+    id: "afkMaster",
+    title: "Мастер покоя",
+    description: "Ничего не делать 5 минут подряд",
+    condition: () => Date.now() - lastActivityTime >= 5 * 60 * 1000,
+    type: "secret"
+  },  
+  {
     id: "clickNothing",
     title: "…и тишина",
     description: "Нажми 10 раз по пустому месту на экране",
@@ -138,14 +146,21 @@ const allAchievements = [
     description: "Тебе не должно было это выпасть...",
     condition: () => Math.floor(Math.random() * 1_000_000_000) === 0,
     type: "secret"
-  }
+  },
+  {
+    id: "scienceWrongWay",
+    title: "Наука пошла не туда",
+    description: "Иметь больше генераторов 3 уровня, чем первого",
+    condition: () => generators[2].amount > generators[0].amount,
+    type: "secret"
+  },  
+  {
+    id: "fullCollection",
+    title: "Коллекционер",
+    description: "Получи все остальные достижения",
+    condition: () => Object.values(achievements).filter(Boolean).length === allAchievements.length - 1
+  }  
 ];
-
-document.addEventListener("click", e => {
-  if (e.target.classList.contains("ach-popup")) {
-    clickedAchievementPopup = true;
-  }
-});
 
 document.addEventListener("keydown", (e) => {
   inputBuffer = (inputBuffer || "") + e.key.toLowerCase();
@@ -255,6 +270,10 @@ function saveGame() {
     matter,
     totalMatter,
     achievements,
+    lastActivityTime,
+    statTabOpened,
+    achHoverCount,
+    uselessClicks,
     lastDistillTime,
     sessionCount,
     lastSessionTime,
@@ -370,6 +389,10 @@ function loadGame() {
     matter = data.matter || 0;
     totalMatter = data.totalMatter || 0;
     achievements = data.achievements || {};
+    lastActivityTime = data.lastActivityTime || Date.now();
+    statTabOpened = data.statTabOpened || 0;
+    achHoverCount = data.achHoverCount || 0;
+    uselessClicks = data.uselessClicks || 0;
     lastDistillTime = data.lastDistillTime || 0;
     sessionCount = data.sessionCount || 1;
     lastSessionTime = data.lastSessionTime || Date.now();
@@ -412,11 +435,8 @@ function loadGame() {
 
 
 function autoSaveLoop() {
-  setInterval(saveGame, 60000); // раз в 60 сек
+  setInterval(saveGame, 10000); // раз в 10 сек
 }
-
-// === Кнопки UI ===
-document.getElementById("generateMatterBtn").addEventListener("click", generateMatter);
 
 // === Tabs ===
 const tabButtons = document.querySelectorAll(".tabBtn");
@@ -454,32 +474,31 @@ const tabs = {
         return html;
       },      
       achievements: () => {
+        const unlockedCount = Object.values(achievements).filter(Boolean).length;
+        const totalCount = allAchievements.length;
+        const percent = Math.floor((unlockedCount / totalCount) * 100);
+      
         const grid = allAchievements.map(a => {
           const unlocked = achievements[a.id];
           const isSecret = a.type === "secret" && !unlocked;
-      
           const title = isSecret ? "???" : a.title;
           const symbol = unlocked ? "🏆" : (isSecret ? "❓" : "❔");
       
           return `
-            <div class="ach-box ${unlocked ? 'ach-unlocked' : `ach-locked ${isSecret ? 'secret' : ''}`}"
+            <div class="ach-box ${unlocked ? 'ach-unlocked' : `ach-locked ${isSecret ? 'secret' : ''}`}" 
                  title="${title}" 
                  onclick="openAchievementModal('${a.id}')">
               ${symbol}
             </div>
           `;
         }).join('');
-
-        setTimeout(() => {
-            document.querySelectorAll(".ach-box").forEach(el => {
-              el.addEventListener("mouseenter", () => {
-                achHoverCount++;
-              });
-            });
-          }, 50);          
       
         return `
           <h3>🏆 Достижения</h3>
+          <p class="ach-progress-text">${unlockedCount} / ${totalCount} получено (${percent}%)</p>
+          <div class="ach-progress-bar">
+            <div class="ach-progress-fill" style="width: ${percent}%"></div>
+          </div>
           <div class="ach-grid">${grid}</div>
         `;
       },      
@@ -518,6 +537,11 @@ tabButtons.forEach(btn => {
 
 document.addEventListener("click", (e) => {
   const id = e.target.id;
+  lastActivityTime = Date.now();
+
+  if (e.target.classList.contains("ach-popup")) {
+    clickedAchievementPopup = true;
+  }
 
   if (!e.target.closest(".modal, .ach-box, button, .tabBtn, section")) {
     uselessClicks++;
@@ -525,15 +549,43 @@ document.addEventListener("click", (e) => {
 
   if (id === "saveNowBtn") {
     saveGame();
-    alert("Игра сохранена вручную!");
+    alert("Игра сохранена!");
   }
 
   if (id === "resetBtn") {
     if (confirm("Ты уверен, что хочешь сбросить весь прогресс?")) {
-      localStorage.removeItem("matterSave");
-      location.reload();
-      manualResetUsed = true;
-      saveGame();
+        matter = 0;
+        totalMatter = 0;
+        maxMatter = 0;
+        maxProduction = 0;
+        distillPoints = 0;
+        hasDistilledOnce = false;
+        matter = 0;
+        distillPoints = 0;
+        distillUpgrades = {
+          gen1Boost: false,
+          unlockHardPrestige: true
+        };
+        generators.forEach((g, i) => {
+        g.amount = 0;
+        g.cost = Math.pow(10, i + 1);
+        g.unlocked = i === 0;
+        });
+
+        saveGame();
+        renderGenerators();
+        updateUI();
+
+        achievements = {};
+        statTabOpened = 0;
+        achHoverCount = 0;
+        uselessClicks = 0;
+        clickedAchievementPopup = false;
+        typedAntimatter = false;
+        manualResetUsed = true;
+        saveGame();
+//      localStorage.removeItem("matterSave");
+//      location.reload();
     }
   }
 
@@ -651,13 +703,6 @@ function calculateTotalBoost() {
   }
   return totalBoost;
 }
-
-document.getElementById("generateMatterBtn").addEventListener("click", () => {
-  const gen1 = generators[0];
-  const boost = calculateTotalBoost();
-  matter += gen1.baseProduction * boost;
-  updateUI();
-});
 
 document.getElementById("generateMatterBtn").addEventListener("click", (e) => {
   const gen1 = generators[0];
@@ -835,32 +880,42 @@ function createConfettiEffect() {
 }
 
 function performRealityReset() {
-  if (!confirm("Ты точно хочешь слить реальность? Это сбросит всё, кроме достижений и статистики!")) return;
+  if (!confirm("Ты точно хочешь слить реальность? Это сбросит весь прогресс!")) return;
 
-  const currentMult = Math.max(1, Math.floor(Math.pow(totalMatter / 1e6, 0.25)));
-  realityResets++;
-  realityBoost *= currentMult;
+  const vortex = document.getElementById("realityCollapseAnimation");
+  vortex.classList.remove("hidden");
 
-  // Полный сброс
-  matter = 0;
-  maxMatter = 0;
-  distillPoints = 0;
-  distillUpgrades = {
-    gen1Boost: false,
-    unlockHardPrestige: true // сохраняем СР
-  };
+  setTimeout(() => {
+    const currentMult = Math.max(1, Math.floor(Math.pow(totalMatter / 1e6, 0.25)));
+    realityResets++;
+    realityBoost *= currentMult;
 
-  // сброс генераторов
-  generators.forEach((g, i) => {
-    g.amount = 0;
-    g.cost = Math.pow(10, i + 1);
-    g.unlocked = i === 0;
-  });
+    // Сброс
+    matter = 0;
+    distillPoints = 0;
+    distillUpgrades = {
+      gen1Boost: false,
+      unlockHardPrestige: true
+    };
 
-  updateUI();
-  renderGenerators();
-  alert("Ты слил реальности. Всё... начинается заново. ✨");
+    generators.forEach((g, i) => {
+      g.amount = 0;
+      g.cost = Math.pow(10, i + 1);
+      g.unlocked = i === 0;
+    });
+
+    // Обновления
+    updateUI();
+    renderGenerators();
+    saveGame();
+
+    setTimeout(() => {
+      vortex.classList.add("hidden");
+      alert("Ты слил реальность. Всё... начинается заново. Но с бустом ✨");
+    }, 2000);
+  }, 500);
 }
+
 
 function openRealityInfo() {
   document.getElementById("realityInfoModal").classList.remove("hidden");

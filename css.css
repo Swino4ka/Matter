@@ -550,3 +550,59 @@ section h2 {
   border: 2px dashed #666;
   color: #888;
 }
+
+.ach-progress-text {
+  text-align: center;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #9eb8db;
+}
+
+.ach-progress-bar {
+  height: 12px;
+  background: #2a2a2a;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 0 auto 20px auto;
+  width: 80%;
+  max-width: 400px;
+  border: 1px solid #444;
+}
+
+.ach-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6f9, #3c6);
+  transition: width 0.3s ease;
+}
+#realityCollapseAnimation {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.4s ease forwards;
+}
+
+#realityVortex {
+  font-size: 64px;
+  animation: spinVortex 3s linear infinite, scaleVortex 2s ease-out forwards;
+}
+
+@keyframes spinVortex {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes scaleVortex {
+  0%   { font-size: 64px; opacity: 1; }
+  30%  { font-size: 120px; }
+  60%  { font-size: 400px; opacity: 0.7; }
+  100% { font-size: 1000px; opacity: 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
