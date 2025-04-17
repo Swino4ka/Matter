@@ -682,7 +682,7 @@ section h2 {
 
 footer {
   text-align: center;
-  padding: 15px;
+  padding: 5px;
   background: rgba(27,22,55,0.8);
   border-radius: 8px;
   position: fixed;
@@ -691,7 +691,6 @@ footer {
   width: 100%;
   color: #fff;
   text-align: center;
-  padding: 10px;
   z-index: 999;
 }
 
@@ -703,4 +702,29 @@ footer a {
 
 footer a:hover {
   color: #fff;
+}
+
+.boosty {
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
+
+.kostylara {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.kostylara img {
+  margin: 0;
+}
+/* Немного стиля */
+#glitchTitle {
+  font-family: 'Orbitron', monospace;
+  font-size: 48px;
+  color: #aaa0ff;
+  letter-spacing: 2px;
+  transition: color 0.3s ease;
 }

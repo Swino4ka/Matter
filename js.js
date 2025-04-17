@@ -1129,6 +1129,99 @@ function closeRealityInfo() {
   document.getElementById("realityInfoModal").classList.add("hidden");
 }
 
+const title = document.getElementById("glitchTitle");
+
+const glitchPhrases = [
+  "Привет из Японии!",
+  "Симуляция дала сбой...",
+  "20°C и полная пустота",
+  "Материя нестабильна",
+  "Вы достигли ∞",
+  "Измерения антиматерии...",
+  "Реальность разрушается...",
+  "Ничто вечно",
+  "Вращение галактик нарушено",
+  "404: Вселенная не найдена"
+];
+
+const charset = "!@#$%^&*()_+-=[]{}|;:,.<>?/\\ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+
+function glitchLetterEffect(element, text, delay = 30) {
+  const original = element.textContent;
+  const maxLength = Math.max(original.length, text.length);
+  let output = Array.from(original.padEnd(maxLength));
+  let target = Array.from(text.padEnd(maxLength));
+
+  let currentIndex = 0;
+
+  function scrambleNext() {
+    if (currentIndex >= maxLength) {
+      setTimeout(() => unscrambleLetters(output, original, delay), 2000);
+      return;
+    }
+
+    let count = 0;
+    const scramble = setInterval(() => {
+      output[currentIndex] = charset[Math.floor(Math.random() * charset.length)];
+      element.textContent = output.join('');
+      count++;
+
+      if (count > 3) {
+        output[currentIndex] = target[currentIndex];
+        currentIndex++;
+        clearInterval(scramble);
+        scrambleNext();
+      }
+    }, delay);
+  }
+
+  scrambleNext();
+}
+
+function unscrambleLetters(output, text, delay = 30) {
+  // Обрезаем или дополняем output под длину новой строки
+  const targetLength = text.length;
+  for (let i = 0; i < targetLength; i++) {
+    if (!output[i]) output[i] = charset[Math.floor(Math.random() * charset.length)];
+  }
+  output.length = targetLength; // <-- обрезаем лишние буквы сразу
+
+  let index = 0;
+
+  function restoreNext() {
+    if (index >= targetLength) {
+      title.textContent = output.join('');
+      setTimeout(startGlitchCycle, 5000);
+      return;
+    }
+
+    let count = 0;
+    const restore = setInterval(() => {
+      output[index] = charset[Math.floor(Math.random() * charset.length)];
+      title.textContent = output.join('');
+      count++;
+
+      if (count > 2) {
+        output[index] = text[index];
+        index++;
+        clearInterval(restore);
+        restoreNext();
+      }
+    }, delay);
+  }
+
+  restoreNext();
+}
+
+
+function startGlitchCycle() {
+  const randomPhrase = glitchPhrases[Math.floor(Math.random() * glitchPhrases.length)];
+  glitchLetterEffect(title, randomPhrase, 20);
+}
+
+// стартуем чуть позже
+setTimeout(startGlitchCycle, 3000);
+
 // === Старт игры ===
 loadGame();
 renderGenerators();
