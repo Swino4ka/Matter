@@ -16,6 +16,16 @@
   <div id="realityVortex">🌌</div>
 </div>
 
+<div id="realityShopModal" class="modal hidden">
+    <div class="modal-content">
+      <span class="closeBtn" onclick="closeRealityShop()">×</span>
+      <h2>Магазин Слитых Реальностей</h2>
+      <p>Текущие слияния: <span id="realityShopResets">0</span></p>
+      <ul id="realityShopList" class="shop-list"></ul>
+    </div>
+  </div>
+  
+
 <div id="achievementModal" class="modal hidden">
   <div class="modal-content">
     <span class="closeBtn" onclick="closeAchievementModal()">&times;</span>
@@ -29,6 +39,7 @@
 <div id="shopFlashContainer"></div>
 
 <button id="openShopBtn" class="hidden" title="Открыть магазин">🛒</button>
+<button id="openRealityShopBtn" class="floating-btn hidden" title="Магазин Реальностей">🌌</button>
 
 <div id="shopModal" class="modal hidden">
   <div class="modal-content">

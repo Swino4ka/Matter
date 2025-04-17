@@ -8,6 +8,11 @@ let distillPoints = 0;
 let realityResets = 0;
 let realityBoost = 1;
 
+let ticksPerSecond = 10;
+let timeUpgradeActive = false;
+let realityUpgradesOwned = {
+    timeAccelerator: false
+  };
 let lastActivityTime = Date.now();
 let uselessClicks = 0;
 let achHoverCount = 0;
@@ -242,8 +247,6 @@ function buyGenerator() {
   }
 }
 
-let ticksPerSecond = 10; // 10 тиков в секунду = каждые 100мс
-
 setInterval(() => {
   const gen1 = generators[0];
   const boost = calculateTotalBoost();
@@ -264,7 +267,7 @@ setInterval(() => {
     }
   });  
   updateUI();
-}, 100);
+}, ticksPerSecond * 10);
 
 function getMatterRate() {
   const gen1 = generators[0];
@@ -413,6 +416,10 @@ function loadGame() {
     hasDistilledOnce = data.hasDistilledOnce || false;
     realityResets = data.realityResets || 0;
     realityBoost = data.realityBoost || 1;
+
+    if (realityResets > 0) {
+        document.getElementById("openRealityShopBtn")?.classList.remove("hidden");
+    }      
 
     // Генераторы
     if (Array.isArray(data.generators)) {
@@ -860,6 +867,18 @@ function buyUpgrade(id) {
   tabContent.innerHTML = tabs.prestige?.();
 }
 
+document.getElementById("openRealityShopBtn").addEventListener("click", openRealityShop);
+
+function openRealityShop() {
+  document.getElementById("realityShopModal").classList.remove("hidden");
+  updateRealityShopUI();
+}
+
+function closeRealityShop() {
+  document.getElementById("realityShopModal").classList.add("hidden");
+}
+
+
 
 function calculateDistillPoints() {
   return Math.floor(Math.pow(matter / 1e6, 0.5));
@@ -881,6 +900,66 @@ function openShop() {
 
 function closeShop() {
   document.getElementById("shopModal").classList.add("hidden");
+}
+
+const realityShopUpgrades = [
+    {
+        id: "timeAccelerator",
+        title: "Ускорение времени",
+        description: "Увеличивает количество тиков с 10 до 13 в секунду, ускоряя всю игру.",
+        cost: 1
+    }
+  ];
+
+  function buyRealityUpgrade(id) {
+  const upgrade = realityShopUpgrades.find(u => u.id === id);
+  if (!upgrade || realityUpgradesOwned[id]) return;
+
+  if (realityResets >= upgrade.cost) {
+    realityResets -= upgrade.cost;
+    realityUpgradesOwned[id] = true;
+
+    if (id === "timeAccelerator") {
+      ticksPerSecond += 3;
+    }
+
+    updateRealityShopUI();
+    updateUI();
+    createConfettiEffect();
+  }
+}
+
+function updateRealityShopUI() {
+  const list = document.getElementById("realityShopList");
+  if (!list) return;
+
+  list.innerHTML = "";
+
+  realityShopUpgrades.forEach(upg => {
+    const isBought = realityUpgradesOwned[upg.id];
+    const canBuy = !isBought && realityResets >= upg.cost;
+  
+    const li = document.createElement("li");
+    li.className = `shop-item ${isBought ? 'bought' : canBuy ? 'can-buy' : 'locked'}`;
+    li.innerHTML = `
+      <div class="shop-price"><strong>${upg.cost} 🌀</strong></div>
+      <div class="shop-info">
+        <div class="shop-title">${upg.title}</div>
+        <div class="shop-desc">${upg.description}</div>
+      </div>
+    `;
+  
+    if (canBuy) {
+      li.onclick = () => buyRealityUpgrade(upg.id);
+    }
+  
+    list.appendChild(li);
+  });
+  
+
+  // Обновим количество слияний
+  const counter = document.getElementById("realityShopResets");
+  if (counter) counter.textContent = realityResets;
 }
 
 function updateShopUI() {
@@ -997,6 +1076,10 @@ function performRealityReset() {
 
   const vortex = document.getElementById("realityCollapseAnimation");
   vortex.classList.remove("hidden");
+  const btn = document.getElementById("openRealityShopBtn");
+  btn?.classList.remove("hidden");
+  btn?.classList.add("shop-reveal");
+  
 
   setTimeout(() => {
     const currentMult = Math.max(1, Math.floor(Math.pow(totalMatter / 1e6, 0.25)));
@@ -1049,3 +1132,4 @@ loadGame();
 renderGenerators();
 updateUI();
 autoSaveLoop();
+updateRealityShopUI();

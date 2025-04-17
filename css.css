@@ -340,6 +340,33 @@ section h2 {
   transition: transform 0.3s ease, opacity 0.4s ease;
 }
 
+#openRealityShopBtn {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 22px;
+  color: #e1e5eb;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#openRealityShopBtn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+#openRealityShopBtn.shop-reveal {
+  animation: shopPop 0.8s ease-out;
+}
+
 #openShopBtn:hover {
   background: #3b4356;
 }
