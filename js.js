@@ -7,6 +7,13 @@ let hasDistilledOnce = false;
 let distillPoints = 0;
 let realityResets = 0;
 let realityBoost = 1;
+
+let lastDistillTime = 0;
+let sessionCount = 1;
+let lastSessionTime = Date.now();
+let clickedAchievementPopup = false;
+let manualResetUsed = false;
+let typedAntimatter = false;
 let distillUpgrades = {
   gen1Boost: false,
   unlockHardPrestige: false
@@ -16,6 +23,125 @@ let gen1 = {
   cost: 10,
   production: 1
 };
+
+const allAchievements = [
+  { id: "matter100", title: "Начало", description: "Накопи 100 материи", condition: () => matter >= 100 },
+  { id: "matter1k", title: "Тысячник", description: "Накопи 1,000 материи", condition: () => matter >= 1000 },
+  { id: "matter10k", title: "Десятитысячник", description: "Накопи 10,000 материи", condition: () => matter >= 10000 },
+  { id: "distill1", title: "Чистота", description: "Соверши первую дестиляцию", condition: () => hasDistilledOnce },
+  { id: "reality1", title: "За гранью", description: "Слей реальность впервые", condition: () => realityResets >= 1 },
+  {
+    id: "matter100",
+    title: "Первые шаги",
+    description: "Накопи 100 материи",
+    condition: () => matter >= 100
+  },
+  {
+    id: "matter1k",
+    title: "Маленький прорыв",
+    description: "Накопи 1,000 материи",
+    condition: () => matter >= 1_000
+  },
+  {
+    id: "matter1m",
+    title: "Путь к миллиону",
+    description: "Накопи 1,000,000 материи",
+    condition: () => matter >= 1_000_000
+  },
+  {
+    id: "matter1b",
+    title: "Дальше — только звёзды",
+    description: "Накопи 1,000,000,000 материи",
+    condition: () => matter >= 1_000_000_000
+  },
+  {
+    id: "firstDistill",
+    title: "Чистота!",
+    description: "Соверши первую дестиляцию",
+    condition: () => hasDistilledOnce
+  },
+  {
+    id: "fastDistill",
+    title: "На горячем пару",
+    description: "Сделай дестиляцию в течение 10 минут после предыдущей",
+    condition: () => Date.now() - lastDistillTime < 10 * 60 * 1000 && hasDistilledOnce
+  },
+  {
+    id: "firstReality",
+    title: "Реальность — это иллюзия",
+    description: "Слей свою первую реальность",
+    condition: () => realityResets >= 1
+  },
+  {
+    id: "comeBack",
+    title: "Ты вернулся!",
+    description: "Открой игру повторно после закрытия вкладки",
+    condition: () => sessionCount > 1
+  },
+  {
+    id: "comeBackNextDay",
+    title: "Новый день — новые материи",
+    description: "Зайди в игру спустя сутки",
+    condition: () => Date.now() - lastSessionTime > 24 * 60 * 60 * 1000
+  },
+  {
+    id: "clickedPopup",
+    title: "Ого, ты успел!",
+    description: "Кликни по вылетевшему достижению",
+    condition: () => clickedAchievementPopup === true
+  },
+  {
+    id: "resetStat",
+    title: "НЕЕЕЕЕЕТ!",
+    description: "Сбрось весь прогресс вручную через настройки",
+    condition: () => manualResetUsed === true
+  },
+  {
+    id: "typingAntimatter",
+    title: "Это было бы странно",
+    description: "Введи 'antimatter dimensions' или 'измерения антиматерии'",
+    condition: () => typedAntimatter === true
+  },
+  {
+    id: "gainRate10",
+    title: "Завод запущен",
+    description: "Достигни 10 материи/сек",
+    condition: () => getMatterRate() >= 10
+  },
+  {
+    id: "gainRate1000",
+    title: "Уже серьёзно",
+    description: "Достигни 1,000 материи/сек",
+    condition: () => getMatterRate() >= 1000
+  },
+  {
+    id: "secretImpossible",
+    title: "🕳️ Ошибка симуляции",
+    description: "Тебе не должно было это выпасть...",
+    condition: () => Math.floor(Math.random() * 1_000_000_000) === 0
+  }
+];
+
+document.addEventListener("click", e => {
+  if (e.target.classList.contains("ach-popup")) {
+    clickedAchievementPopup = true;
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  inputBuffer = (inputBuffer || "") + e.key.toLowerCase();
+  if (inputBuffer.includes("antimatterdimensions") || inputBuffer.includes("измеренияантиматерии")) {
+    typedAntimatter = true;
+  }
+  if (inputBuffer.length > 50) inputBuffer = inputBuffer.slice(-50);
+});
+
+let achievements = {};
+
+function calculateAchievementBoost() {
+  const count = Object.values(achievements).filter(Boolean).length;
+  return 1 + 0.1 * count;
+}
 
 function formatNumber(num) {
   if (num >= 1e15) return num.toExponential(2).replace("+", "");
@@ -80,7 +206,7 @@ setInterval(() => {
   const gen1 = generators[0];
   const boost = calculateTotalBoost();
   const base = distillUpgrades.gen1Boost ? 1.2 : 1;
-  const gain = (gen1.amount * gen1.baseProduction * boost * base * realityBoost) / ticksPerSecond;
+  const gain = (gen1.amount * gen1.baseProduction * boost * base * realityBoost * calculateAchievementBoost()) / ticksPerSecond;
   totalMatter += gain;
   if (matter > maxMatter) {
     maxMatter = matter;
@@ -89,6 +215,12 @@ setInterval(() => {
     maxProduction = gain * ticksPerSecond;
   }
   matter += gain;
+  allAchievements.forEach(a => {
+    if (!achievements[a.id] && a.condition()) {
+      achievements[a.id] = true;
+      showAchievementPopup(a.title);
+    }
+  });  
   updateUI();
 }, 100);
 
@@ -96,18 +228,80 @@ setInterval(() => {
 function saveGame() {
   const saveData = {
     matter,
-    gen1,
-    lastSaved: Date.now(),
-    totalMatter: totalMatter,
-    maxMatter: maxMatter,
-    maxProduction: maxProduction,
+    totalMatter,
+    achievements,
+    lastDistillTime,
+    sessionCount,
+    lastSessionTime,
+    clickedAchievementPopup,
+    manualResetUsed,
+    typedAntimatter,
+    maxMatter,
+    maxProduction,
+    generators,
+    distillPoints,
+    distillUpgrades,
     hasDistilledOnce,
     realityResets,
-    realityBoost
+    realityBoost,
+    lastSaved: Date.now()
   };
   localStorage.setItem("matterSave", JSON.stringify(saveData));
   updateLastSavedTime();
   console.log("Игра сохранена!");
+}
+
+function openAchievementModal(id) {
+  const ach = allAchievements.find(a => a.id === id);
+  if (!ach) return;
+  document.getElementById("achModalTitle").textContent = ach.title;
+  document.getElementById("achModalDesc").textContent = ach.description;
+  document.getElementById("achievementModal").classList.remove("hidden");
+}
+
+function closeAchievementModal() {
+  document.getElementById("achievementModal").classList.add("hidden");
+}
+
+function showAchievementPopup(text) {
+  const el = document.createElement("div");
+  el.className = "ach-popup";
+  el.textContent = `🏆 Достижение: ${text.length > 40 ? text.slice(0, 40) + '...' : text}`;
+  document.getElementById("achievementPopupContainer").appendChild(el);
+
+  spawnAchievementConfetti();
+
+  setTimeout(() => el.remove(), 2500);
+}
+
+function spawnAchievementConfetti() {
+  const symbols = ['✨', '🌟', '🎉', '💫', '⭐'];
+  for (let i = 0; i < 15; i++) {
+    const conf = document.createElement("div");
+    conf.className = "confetti";
+    conf.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    conf.style.position = "fixed";
+    conf.style.left = "30px";
+    conf.style.top = "40px";
+    conf.style.fontSize = `${Math.random() * 10 + 12}px`;
+    conf.style.color = `hsl(${Math.random() * 360}, 80%, 70%)`;
+    conf.style.zIndex = 999;
+    conf.style.pointerEvents = "none";
+
+    const dx = (Math.random() - 0.5) * 200;
+    const dy = -Math.random() * 100 - 50;
+
+    conf.animate([
+      { transform: "translate(0, 0)", opacity: 1 },
+      { transform: `translate(${dx}px, ${dy}px)`, opacity: 0 }
+    ], {
+      duration: 1000,
+      easing: "ease-out"
+    });
+
+    document.body.appendChild(conf);
+    setTimeout(() => conf.remove(), 1000);
+  }
 }
 
 function calculateDistillPoints() {
@@ -143,30 +337,50 @@ function loadGame() {
   const save = localStorage.getItem("matterSave");
   if (save) {
     const data = JSON.parse(save);
+
     matter = data.matter || 0;
-    gen1 = data.gen1 || { amount: 0, cost: 10, production: 1 };
     totalMatter = data.totalMatter || 0;
+    achievements = data.achievements || {};
+    lastDistillTime = data.lastDistillTime || 0;
+    sessionCount = data.sessionCount || 1;
+    lastSessionTime = data.lastSessionTime || Date.now();
+    clickedAchievementPopup = data.clickedAchievementPopup || false;
+    manualResetUsed = data.manualResetUsed || false;
+    typedAntimatter = data.typedAntimatter || false;
     maxMatter = data.maxMatter || 0;
     maxProduction = data.maxProduction || 0;
+    distillPoints = data.distillPoints || 0;
     hasDistilledOnce = data.hasDistilledOnce || false;
     realityResets = data.realityResets || 0;
     realityBoost = data.realityBoost || 1;
-    if (hasDistilledOnce) {
-      document.getElementById("openShopBtn").classList.remove("hidden");
+
+    // Генераторы
+    if (Array.isArray(data.generators)) {
+      generators.forEach((g, i) => {
+        if (data.generators[i]) {
+          g.amount = data.generators[i].amount || 0;
+          g.cost = data.generators[i].cost || Math.pow(10, i + 1);
+          g.unlocked = data.generators[i].unlocked || false;
+        }
+      });
     }
 
-  
-    // открытие генераторов при загрузке
-    generators.forEach((gen, i) => {
-      if (i > 0 && generators[i - 1].amount > 0) {
-        gen.unlocked = true;
-      }
-    });
-  
+    distillUpgrades = data.distillUpgrades || {
+      gen1Boost: false,
+      unlockHardPrestige: false
+    };
+
+    if (hasDistilledOnce) {
+      document.getElementById("openShopBtn")?.classList.remove("hidden");
+    }
+
     updateUI();
+    renderGenerators();
     setTimeout(updateLastSavedTime, 100);
-  }  
+    console.log("Игра загружена!");
+  }
 }
+
 
 function autoSaveLoop() {
   setInterval(saveGame, 60000); // раз в 60 сек
@@ -210,7 +424,23 @@ const tabs = {
       
         return html;
       },      
-    achievements: `<h3>🏆 Достижения</h3><p>Пока нет достижений.</p>`,
+      achievements: () => {
+        const grid = allAchievements.map(a => {
+          const unlocked = achievements[a.id];
+          return `
+            <div class="ach-box ${unlocked ? 'ach-unlocked' : 'ach-locked'}" 
+                 title="${a.title}" 
+                 onclick="openAchievementModal('${a.id}')">
+              ${unlocked ? "🏆" : "❔"}
+            </div>
+          `;
+        }).join('');
+      
+        return `
+          <h3>🏆 Достижения</h3>
+          <div class="ach-grid">${grid}</div>
+        `;
+      },      
     stats: () => {
         let genList = generators.map((g, i) => `<li>${g.name}: ${g.amount}x</li>`).join('');
         return `
@@ -590,7 +820,6 @@ function openRealityInfo() {
 function closeRealityInfo() {
   document.getElementById("realityInfoModal").classList.add("hidden");
 }
-
 
 // === Старт игры ===
 loadGame();

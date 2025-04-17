@@ -472,3 +472,75 @@ section h2 {
     opacity: 0;
   }
 }
+
+.ach-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 60px);
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.ach-box {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  transition: 0.2s;
+  border: 2px solid transparent;
+}
+
+.ach-locked {
+  background: #444;
+  color: #888;
+  opacity: 0.5;
+}
+
+.ach-unlocked {
+  background: #2f4f30;
+  color: #aaffaa;
+  border-color: #6f6;
+}
+#achievementPopupContainer {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 999;
+  pointer-events: none;
+}
+
+.ach-popup {
+  background: #2f4f30;
+  color: #aaffaa;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  animation: popupFade 2.5s ease-out forwards;
+  max-width: 300px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@keyframes popupFade {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  10% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
