@@ -7,6 +7,35 @@
   <link rel="stylesheet" href="css.css" />
 </head>
 <body>
+
+<div id="shopFlashContainer"></div>
+
+<button id="openShopBtn" class="hidden" title="Открыть магазин">🛒</button>
+
+<div id="shopModal" class="modal hidden">
+  <div class="modal-content">
+    <span class="closeBtn" onclick="closeShop()">&times;</span>
+    <h2>Премиум-магазин</h2>
+    <p><strong>Очки дестилляции (ОД):</strong> <span id="shopPoints">0</span></p>
+    <ul id="shopList"></ul>
+  </div>
+</div>
+
+
+<div id="infoModal" class="modal hidden">
+  <div class="modal-content">
+    <span class="closeBtn" onclick="closeDistillInfo()">&times;</span>
+    <h2>О дестилляции</h2>
+    <p>
+      Дестилляция — это сброс всей материи в обмен на Очки Дестилляции (ОД).<br>
+      Ты сохраняешь генераторы, апгрейды, ачивки и прогресс.<br><br>
+      Очки можно потратить в престиж-магазине на перманентные усиления.<br>
+      Чем больше материи ты накопишь — тем больше получишь очков.<br><br>
+      Формула получения очков: <code>sqrt(материя / 1e6)</code>
+    </p>
+  </div>
+</div>
+
   <div id="clickEffects"></div>
   <h1>Matter</h1>
   <div id="gameContainer">

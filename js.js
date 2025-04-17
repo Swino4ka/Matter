@@ -3,6 +3,7 @@ let matter = 0;
 let totalMatter = 0;
 let maxMatter = 0;
 let maxProduction = 0;
+let hasDistilledOnce = false;
 let distillPoints = 0;
 let distillUpgrades = {
   gen1Boost: false,
@@ -66,7 +67,8 @@ let ticksPerSecond = 10; // 10 тиков в секунду = каждые 100м
 setInterval(() => {
   const gen1 = generators[0];
   const boost = calculateTotalBoost();
-  const gain = (gen1.amount * gen1.baseProduction * boost) / ticksPerSecond;
+  const base = distillUpgrades.gen1Boost ? 1.2 : 1;
+  const gain = (gen1.amount * gen1.baseProduction * boost * base) / ticksPerSecond;
   totalMatter += gain;
   if (matter > maxMatter) {
     maxMatter = matter;
@@ -86,7 +88,8 @@ function saveGame() {
     lastSaved: Date.now(),
     totalMatter: totalMatter,
     maxMatter: maxMatter,
-    maxProduction: maxProduction
+    maxProduction: maxProduction,
+    hasDistilledOnce
   };
   localStorage.setItem("matterSave", JSON.stringify(saveData));
   updateLastSavedTime();
@@ -94,8 +97,25 @@ function saveGame() {
 }
 
 function calculateDistillPoints() {
-  return Math.floor(Math.pow(matter / 1e6, 0.5));
+    const threshold = 1e5; // стартовая цена
+    const base = matter / threshold;
+    return base >= 1 ? Math.floor(Math.pow(base, 0.5)) : 0;
 }
+
+function nextDistillCost() {
+  const threshold = 1e5;
+  const currentPoints = calculateDistillPoints();
+  const nextTarget = Math.pow(currentPoints + 1, 2) * threshold;
+  return nextTarget;
+}
+
+function formatNumber(num) {
+  if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+  if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+  if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+  return Math.floor(num);
+}
+
 
 function updateLastSavedTime() {
   const span = document.getElementById("lastSavedTime");
@@ -114,6 +134,11 @@ function loadGame() {
     totalMatter = data.totalMatter || 0;
     maxMatter = data.maxMatter || 0;
     maxProduction = data.maxProduction || 0;
+    hasDistilledOnce = data.hasDistilledOnce || false;
+    if (hasDistilledOnce) {
+      document.getElementById("openShopBtn").classList.remove("hidden");
+    }
+
   
     // открытие генераторов при загрузке
     generators.forEach((gen, i) => {
@@ -141,33 +166,17 @@ const tabContent = document.getElementById("tabContent");
 const tabs = {
     prestige: () => {
         const available = calculateDistillPoints();
-        let upgradesHtml = '';
-      
-        if (distillPoints > 0 || distillUpgrades.gen1Boost || distillUpgrades.unlockHardPrestige) {
-          upgradesHtml = `
-            <h4>🛒 Магазин</h4>
-            <ul>
-              <li>
-                Усиление Генератора 1 в 1.2x 
-                ${distillUpgrades.gen1Boost ? "✅" : `<button onclick="buyUpgrade('gen1Boost')">Купить (2 ОД)</button>`}
-              </li>
-              <li>
-                Разблокировка Слияний Реальностей 
-                ${distillUpgrades.unlockHardPrestige ? "✅" : `<button onclick="buyUpgrade('unlockHardPrestige')">Купить (10 ОД)</button>`}
-              </li>
-            </ul>
-          `;
-        }
+        const next = nextDistillCost();
       
         return `
           <h3>💠 Престиж: Дестилляция</h3>
           <p>Ты можешь получить <strong>${available}</strong> очков дестилляции (ОД).</p>
+          <p><strong>Текущие очки дестилляции (ОД):</strong> ${distillPoints}</p>
+          <p class="distill-next-cost">Следующее ОД через: <strong>${formatNumber(next)}</strong> материи</p>
           <div class="distill-controls">
             <button onclick="performDistill()">Дестиллировать</button>
             <button class="info-btn" onclick="openDistillInfo()">ℹ️</button>
           </div>
-          <p><strong>Текущие очки дестилляции (ОД):</strong> ${distillPoints}</p>
-          ${upgradesHtml}
         `;
       },
     achievements: `<h3>🏆 Достижения</h3><p>Пока нет достижений.</p>`,
@@ -383,6 +392,13 @@ function performDistill() {
     return;
   }
 
+  if (!hasDistilledOnce) {
+    hasDistilledOnce = true;
+    const btn = document.getElementById("openShopBtn");
+    btn.classList.remove("hidden");
+    btn.classList.add("shop-reveal");
+  }
+
   distillPoints += earned;
   matter = 0;
 
@@ -398,20 +414,117 @@ function buyUpgrade(id) {
   if (id === 'gen1Boost' && distillPoints >= 2 && !distillUpgrades.gen1Boost) {
     distillPoints -= 2;
     distillUpgrades.gen1Boost = true;
+    document.getElementById("openShopBtn")?.classList.add("shop-reveal");
   }
 
   if (id === 'unlockHardPrestige' && distillPoints >= 10 && !distillUpgrades.unlockHardPrestige) {
     distillPoints -= 10;
     distillUpgrades.unlockHardPrestige = true;
+    document.getElementById("openShopBtn")?.classList.add("shop-reveal");
   }
 
   updateUI();
-  tabContent.innerHTML = tabs.prestige(); // обновим UI
+  updateShopUI();
+  tabContent.innerHTML = tabs.prestige?.();
 }
+
 
 function calculateDistillPoints() {
   return Math.floor(Math.pow(matter / 1e6, 0.5));
 }
+
+function openDistillInfo() {
+  document.getElementById("infoModal").classList.remove("hidden");
+}
+function closeDistillInfo() {
+  document.getElementById("infoModal").classList.add("hidden");
+}
+
+document.getElementById("openShopBtn").addEventListener("click", openShop);
+
+function openShop() {
+  document.getElementById("shopModal").classList.remove("hidden");
+  updateShopUI();
+}
+
+function closeShop() {
+  document.getElementById("shopModal").classList.add("hidden");
+}
+
+function updateShopUI() {
+  document.getElementById("shopPoints").textContent = distillPoints;
+  const list = document.getElementById("shopList");
+
+  const upgrades = [
+    {
+      id: "gen1Boost",
+      title: "Усиление Генератора 1 в 1.2x",
+      description: "Навсегда увеличивает производство Генератора 1.",
+      cost: 2
+    },
+    {
+      id: "unlockHardPrestige",
+      title: "Слияния Реальностей",
+      description: "Открывает жёсткий престиж с постоянным бустом ко всему.",
+      cost: 10
+    }
+  ];  
+
+  list.innerHTML = "";
+
+  upgrades.forEach(upg => {
+    const isBought = distillUpgrades[upg.id];
+    const canBuy = !isBought && distillPoints >= upg.cost;
+  
+    const li = document.createElement("li");
+    li.className = `shop-item ${isBought ? 'bought' : canBuy ? 'can-buy' : 'locked'}`;
+    li.innerHTML = `
+      <div class="shop-price"><strong>${upg.cost} ОД</strong></div>
+      <div class="shop-info">
+        <div class="shop-title">${upg.title}</div>
+        <div class="shop-desc">${upg.description}</div>
+      </div>
+    `;
+  
+    if (canBuy) {
+        li.onclick = () => {
+          buyUpgrade(upg.id);
+          createConfettiEffect();
+        };
+      }      
+  
+    list.appendChild(li);
+  });  
+}
+
+function createConfettiEffect() {
+  const symbols = ['★', '✦', '♦', '✧', '💥'];
+  const container = document.getElementById("shopFlashContainer");
+
+  for (let i = 0; i < 30; i++) {
+    const confetti = document.createElement("div");
+    confetti.className = "confetti";
+    confetti.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+
+    const size = Math.random() * 8 + 12;
+    const startX = window.innerWidth / 2;
+    const offsetX = (Math.random() - 0.5) * 200;
+    const color = `hsl(${Math.random() * 360}, 80%, 70%)`;
+
+    confetti.style.left = `${startX + offsetX}px`;
+    confetti.style.top = `50%`;
+    confetti.style.fontSize = `${size}px`;
+    confetti.style.color = color;
+
+    container.appendChild(confetti);
+
+    setTimeout(() => {
+      confetti.remove();
+    }, 1000);
+  }
+}
+
+
 
 // === Старт игры ===
 loadGame();
