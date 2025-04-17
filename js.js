@@ -499,8 +499,10 @@ const tabs = {
             <h4 style="margin-top: 30px;">🌀 Слияние Реальностей</h4>
             <p>Сброс всего прогресса (включая генераторы и дестилляцию)</p>
             <p><strong>Множитель производства после слияния:</strong> ${currentMult}x</p>
+            <div class="distill-controls">
             <button onclick="performRealityReset()">Слить реальность</button>
             <button class="info-btn" onclick="openRealityInfo()">ℹ️</button>
+            </div>
             <p><strong>Количество слияний:</strong> ${realityResets}</p>
             <p><strong>Текущий буст производства:</strong> ${realityBoost.toFixed(2)}x</p>
           `;
