@@ -99,6 +99,22 @@ button:active {
   max-width: 400px;
   text-align: center;
   position: relative;
+  max-height: 600px; 
+  overflow-y: auto;
+  padding-right: 10px; 
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background-color: #4876b2;
+  border-radius: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .modal-content h2 {
@@ -329,16 +345,16 @@ section h2 {
 }
 
 #openShopBtn.shop-reveal {
-  animation: shopPop 0.6s ease-out;
+  animation: shopPop 1.6s ease-out;
 }
 
 @keyframes shopPop {
   0% {
-    transform: scale(0.5);
+    transform: translate(-50%, -50%) scale(0.5);
     opacity: 0;
   }
   50% {
-    transform: scale(1.1);
+    transform: translate(-50%, -50%) scale(5);
     opacity: 1;
   }
   100% {
@@ -605,4 +621,34 @@ section h2 {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+#distillEffect {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  pointer-events: none;
+  animation: fadeInOut 1.8s;
+}
+
+#distillFlask {
+  font-size: 64px;
+  animation: flaskPop 1.8s ease forwards;
+}
+
+@keyframes flaskPop {
+  0%   { transform: scale(0.1) rotate(0deg); opacity: 0.5; }
+  50%  { transform: scale(2) rotate(720deg); opacity: 1; }
+  100% { transform: scale(0.3) rotate(1080deg); opacity: 0; }
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
 }

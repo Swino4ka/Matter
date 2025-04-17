@@ -20,8 +20,16 @@ let clickedAchievementPopup = false;
 let manualResetUsed = false;
 let typedAntimatter = false;
 let distillUpgrades = {
-  gen1Boost: false,
-  unlockHardPrestige: false
+  unlockGen5: false,
+  boostGen1: false,
+  boostGen2: false,
+  boostGen3: false,
+  boostGen4: false,
+  unlockHardPrestige: false,
+  cheaperGens: false,
+  starterPack: false,
+  costReduction: 1,
+  startWithGen1: 0
 };
 let gen1 = {
   amount: 0,
@@ -239,7 +247,7 @@ let ticksPerSecond = 10; // 10 тиков в секунду = каждые 100м
 setInterval(() => {
   const gen1 = generators[0];
   const boost = calculateTotalBoost();
-  const base = distillUpgrades.gen1Boost ? 1.2 : 1;
+  const base = distillUpgrades.boostGen1 ? 1.2 : 1;
   const gain = (gen1.amount * gen1.baseProduction * boost * base * realityBoost * calculateAchievementBoost()) / ticksPerSecond;
   totalMatter += gain;
   if (matter > maxMatter) {
@@ -417,8 +425,28 @@ function loadGame() {
       });
     }
 
+    if (distillUpgrades.unlockGen5) {
+        const existingCount = generators.length;
+        const maxToAdd = 3;
+        for (let i = existingCount; i < existingCount + maxToAdd; i++) {
+          generators.push({
+            name: `Генератор ${i + 1}`,
+            amount: 0,
+            cost: Math.pow(10, i + 1),
+            unlocked: false
+          });
+        }
+      }
+      
+
     distillUpgrades = data.distillUpgrades || {
-      gen1Boost: false,
+      unlockGen5: false,
+      startWithGen1: 0,
+      boostGen1: false,
+      boostGen2: false,
+      boostGen3: false,
+      boostGen4: false,
+      costReduction: 1,
       unlockHardPrestige: false
     };
 
@@ -563,8 +591,8 @@ document.addEventListener("click", (e) => {
         matter = 0;
         distillPoints = 0;
         distillUpgrades = {
-          gen1Boost: false,
-          unlockHardPrestige: true
+          boostGen1: false,
+          unlockHardPrestige: false
         };
         generators.forEach((g, i) => {
         g.amount = 0;
@@ -650,7 +678,7 @@ function buyGenerator(index, amount = 1) {
     if (matter >= gen.cost) {
       matter -= gen.cost;
       gen.amount++;
-      gen.cost = Math.floor(gen.cost * 1.5);
+      gen.cost = Math.floor(gen.cost * 1.5 * distillUpgrades.costReduction);
       bought++;
 
       // Открытие следующего генератора
@@ -678,7 +706,7 @@ function buyMaxGenerator(index) {
   while (matter >= gen.cost) {
     matter -= gen.cost;
     gen.amount++;
-    gen.cost = Math.floor(gen.cost * 1.5);
+    gen.cost = Math.floor(gen.cost * 1.5 * distillUpgrades.costReduction);
     bought++;
 
     if (generators[index + 1] && !generators[index + 1].unlocked) {
@@ -699,10 +727,18 @@ function buyMaxGenerator(index) {
 function calculateTotalBoost() {
   let totalBoost = 1;
   for (let i = 1; i < generators.length; i++) {
-    totalBoost *= Math.pow(1.02, generators[i].amount);
+    const baseBoost = Math.pow(1.02, generators[i].amount);
+
+    let mult = 1;
+    if (i === 1 && distillUpgrades.boostGen2) mult = 1.2;
+    if (i === 2 && distillUpgrades.boostGen3) mult = 1.2;
+    if (i === 3 && distillUpgrades.boostGen4) mult = 1.2;
+
+    totalBoost *= baseBoost * mult;
   }
   return totalBoost;
 }
+
 
 document.getElementById("generateMatterBtn").addEventListener("click", (e) => {
   const gen1 = generators[0];
@@ -756,28 +792,69 @@ function performDistill() {
 
   distillPoints += earned;
   matter = 0;
+  
+  showDistillEffect();
 
   // можно обнулить статистику по желанию
   // totalMatter = 0;
 
   updateUI();
   renderGenerators();
-  alert(`Ты получил ${earned} ОД!`);
+}
+
+function showDistillEffect() {
+  const el = document.getElementById("distillEffect");
+  el.classList.remove("hidden");
+  setTimeout(() => {
+    el.classList.add("hidden");
+  }, 1800);
 }
 
 function buyUpgrade(id) {
-  if (id === 'gen1Boost' && distillPoints >= 2 && !distillUpgrades.gen1Boost) {
+    if (id === 'unlockGen5' && distillPoints >= 12 && !distillUpgrades.unlockGen5) {
+        distillPoints -= 12;
+        distillUpgrades.unlockGen5 = true;
+    }
+    
+  if (id === 'boostGen1' && distillPoints >= 2 && !distillUpgrades.boostGen1) {
     distillPoints -= 2;
-    distillUpgrades.gen1Boost = true;
+    distillUpgrades.boostGen1 = true;
     document.getElementById("openShopBtn")?.classList.add("shop-reveal");
   }
 
+  if (id === 'boostGen2' && distillPoints >= 3 && !distillUpgrades.boostGen2) {
+    distillPoints -= 3;
+    distillUpgrades.boostGen2 = true;
+  }
+  if (id === 'boostGen3' && distillPoints >= 5 && !distillUpgrades.boostGen3) {
+    distillPoints -= 5;
+    distillUpgrades.boostGen3 = true;
+  }
+  if (id === 'boostGen4' && distillPoints >= 8 && !distillUpgrades.boostGen4) {
+    distillPoints -= 8;
+    distillUpgrades.boostGen4 = true;
+  }
+  
   if (id === 'unlockHardPrestige' && distillPoints >= 10 && !distillUpgrades.unlockHardPrestige) {
     distillPoints -= 10;
     distillUpgrades.unlockHardPrestige = true;
     document.getElementById("openShopBtn")?.classList.add("shop-reveal");
   }
 
+  if (id === 'cheaperGens' && distillPoints >= 15 && !distillUpgrades.cheaperGens) {
+    distillPoints -= 15;
+    distillUpgrades.cheaperGens = true;
+    distillUpgrades.costReduction = 0.9;
+    document.getElementById("openShopBtn")?.classList.add("shop-reveal");
+  }
+
+  if (id === 'starterPack' && distillPoints >= 6 && !distillUpgrades.cheaperGens) {
+    distillPoints -= 6;
+    distillUpgrades.starterPack = true;
+    distillUpgrades.startWithGen1 = 10;
+    document.getElementById("openShopBtn")?.classList.add("shop-reveal");
+  }
+  
   updateUI();
   updateShopUI();
   tabContent.innerHTML = tabs.prestige?.();
@@ -812,10 +889,46 @@ function updateShopUI() {
 
   const upgrades = [
     {
-      id: "gen1Boost",
+        id: "unlockGen5",
+        title: "Новые горизонты",
+        description: "Разблокирует Генератор 5 и выше",
+        cost: 12
+    },      
+    {
+      id: "boostGen1",
       title: "Усиление Генератора 1 в 1.2x",
       description: "Навсегда увеличивает производство Генератора 1.",
       cost: 2
+    },
+    {
+      id: "boostGen2",
+      title: "Буст Генератора 2 в 1.2x",
+      description: "Увеличивает силу второго генератора навсегда.",
+      cost: 3
+    },
+    {
+      id: "boostGen3",
+      title: "Буст Генератора 3 в 1.2x",
+      description: "Увеличивает силу третьего генератора навсегда.",
+      cost: 5
+    },
+    {
+      id: "boostGen4",
+      title: "Буст Генератора 4 в 1.2x",
+      description: "Увеличивает силу четвёртого генератора навсегда.",
+      cost: 8
+    },
+    {
+      id: "cheaperGens",
+      title: "Сжатие цен",
+      description: "Все генераторы стоят на 10% меньше.",
+      cost: 15
+    },
+    {
+      id: "starterPack",
+      title: "Двойной старт",
+      description: "После дестиляции ты начинаешь с 10 генераторов первого уровня.",
+      cost: 6
     },
     {
       id: "unlockHardPrestige",
@@ -894,7 +1007,7 @@ function performRealityReset() {
     matter = 0;
     distillPoints = 0;
     distillUpgrades = {
-      gen1Boost: false,
+      boostGen1: false,
       unlockHardPrestige: true
     };
 
@@ -903,6 +1016,12 @@ function performRealityReset() {
       g.cost = Math.pow(10, i + 1);
       g.unlocked = i === 0;
     });
+
+    // если активен старт с генераторами
+    if (distillUpgrades.startWithGen1) {
+        generators[0].amount = distillUpgrades.startWithGen1;
+    }
+  
 
     // Обновления
     updateUI();
