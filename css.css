@@ -1,0 +1,243 @@
+/* Общие стили */
+body {
+  margin: 0;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(-45deg, #1b1229, #150f2b, #231746, #0f0820);
+  background-size: 400% 400%;
+  animation: bgMove 20s ease infinite alternate;
+  color: #e1e5eb;
+  max-width: 800px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Анимация фона */
+@keyframes bgMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Заголовки */
+h1, h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-size: 2.5rem;
+  color: #a8c5e9;
+  margin-bottom: 40px; /* было 20px */
+  text-align: center;
+}
+
+
+h2 {
+  font-size: 1.5rem;
+  color: #9eb8db;
+}
+
+/* Кнопки */
+button {
+  background: #4876b2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.1s;
+  display: block;
+  margin: 10px auto;
+  max-width: 300px;
+  width: 100%;
+}
+
+button:hover {
+  background: #5a8ac6;
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Меню кнопка */
+#openMenuBtn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 10px;
+  font-size: 1.2rem;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Модалка */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 8, 32, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background: #232836;
+  border-radius: 8px;
+  padding: 30px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  position: relative;
+}
+
+.modal-content h2 {
+  margin-bottom: 20px;
+  color: #a8c5e9;
+}
+
+.modal-content ul {
+  list-style: none;
+  padding: 0;
+}
+
+.modal-content li {
+  background: #2a303e;
+  padding: 12px 16px;
+  margin: 10px 0;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.modal-content li:hover {
+  background: #3b4356;
+}
+
+/* Кнопка закрытия */
+.closeBtn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  color: #9eb8db;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+/* Контейнер всей игры */
+#gameContainer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Левая панель — генераторы и прочее */
+#leftPanel {
+  width: 400px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding-right: 10px;
+  flex-shrink: 0;
+}
+
+/* Правая панель — вкладки, теперь широкая */
+#rightPanel {
+  flex: 1;
+  min-width: 500px;
+  background: rgba(35, 40, 54, 0.9);
+  border: 1px solid #2c3347;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.15);
+}
+
+/* Вкладки и контент */
+#menuTabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tabBtn {
+  background: #2a303e;
+  color: #e1e5eb;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  white-space: nowrap;
+}
+
+.tabBtn:hover {
+  background: #3b4356;
+}
+
+#tabContent {
+  background: #1e2330;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #2c3347;
+  min-height: 200px;
+}
+
+/* Улучшим внешний вид секций слева */
+section {
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: rgba(35, 40, 54, 0.95);
+  border: 1px solid #2c3347;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+}
+
+section h2 {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+}
+
+#clickEffects {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.click-float {
+  position: absolute;
+  color: #e1e5eb;
+  font-weight: bold;
+  font-size: 14px;
+  opacity: 1;
+  animation: floatUp 1s ease-out forwards;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-40px);
+    opacity: 0;
+  }
+}
