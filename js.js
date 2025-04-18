@@ -1,4 +1,3 @@
-// === Переменные игры ===
 let matter = 0;
 let totalMatter = 0;
 let maxMatter = 0;
@@ -275,7 +274,6 @@ function getMatterRate() {
   return gen1.amount * gen1.baseProduction * boost * realityBoost * calculateAchievementBoost();
 }
 
-// === Сохранение игры ===
 function saveGame() {
   const saveData = {
     matter,
@@ -421,7 +419,6 @@ function loadGame() {
         document.getElementById("openRealityShopBtn")?.classList.remove("hidden");
     }      
 
-    // Генераторы
     if (Array.isArray(data.generators)) {
       generators.forEach((g, i) => {
         if (data.generators[i]) {
@@ -470,10 +467,9 @@ function loadGame() {
 
 
 function autoSaveLoop() {
-  setInterval(saveGame, 10000); // раз в 10 сек
+  setInterval(saveGame, 10000);
 }
 
-// === Tabs ===
 const tabButtons = document.querySelectorAll(".tabBtn");
 const tabContent = document.getElementById("tabContent");
 
@@ -1129,8 +1125,6 @@ function closeRealityInfo() {
   document.getElementById("realityInfoModal").classList.add("hidden");
 }
 
-const title = document.getElementById("glitchTitle");
-
 const glitchPhrases = [
   "Привет из Японии!",
   "Симуляция дала сбой...",
@@ -1144,83 +1138,67 @@ const glitchPhrases = [
   "404: Вселенная не найдена"
 ];
 
-const charset = "!@#$%^&*()_+-=[]{}|;:,.<>?/\\ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+const title = document.getElementById("glitchTitle");
 
-function glitchLetterEffect(element, text, delay = 30) {
-  const original = element.textContent;
-  const maxLength = Math.max(original.length, text.length);
-  let output = Array.from(original.padEnd(maxLength));
-  let target = Array.from(text.padEnd(maxLength));
+const original = "Matter";
+const chars = "!@#$%^&*()_+-=[]{}|;:,.<>?/\\ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
 
-  let currentIndex = 0;
-
-  function scrambleNext() {
-    if (currentIndex >= maxLength) {
-      setTimeout(() => unscrambleLetters(output, original, delay), 2000);
-      return;
-    }
-
-    let count = 0;
-    const scramble = setInterval(() => {
-      output[currentIndex] = charset[Math.floor(Math.random() * charset.length)];
-      element.textContent = output.join('');
-      count++;
-
-      if (count > 3) {
-        output[currentIndex] = target[currentIndex];
-        currentIndex++;
-        clearInterval(scramble);
-        scrambleNext();
-      }
-    }, delay);
-  }
-
-  scrambleNext();
-}
-
-function unscrambleLetters(output, text, delay = 30) {
-  // Обрезаем или дополняем output под длину новой строки
-  const targetLength = text.length;
-  for (let i = 0; i < targetLength; i++) {
-    if (!output[i]) output[i] = charset[Math.floor(Math.random() * charset.length)];
-  }
-  output.length = targetLength; // <-- обрезаем лишние буквы сразу
-
+function glitchTextCycle() {
+  const target = glitchPhrases[Math.floor(Math.random() * glitchPhrases.length)];
+  const maxLength = Math.max(original.length, target.length);
+  let current = Array.from(original.padEnd(maxLength));
+  let final = Array.from(target.padEnd(maxLength));
   let index = 0;
 
-  function restoreNext() {
-    if (index >= targetLength) {
-      title.textContent = output.join('');
-      setTimeout(startGlitchCycle, 5000);
+  const scrambleInterval = setInterval(() => {
+    if (index >= maxLength) {
+      clearInterval(scrambleInterval);
+      setTimeout(() => unscramble(original, maxLength), 2000);
       return;
     }
 
-    let count = 0;
-    const restore = setInterval(() => {
-      output[index] = charset[Math.floor(Math.random() * charset.length)];
-      title.textContent = output.join('');
-      count++;
+    let display = [...current];
+    display[index] = chars[Math.floor(Math.random() * chars.length)];
+    title.textContent = display.join("");
 
-      if (count > 2) {
-        output[index] = text[index];
-        index++;
-        clearInterval(restore);
-        restoreNext();
-      }
-    }, delay);
-  }
-
-  restoreNext();
+    setTimeout(() => {
+      current[index] = final[index];
+      title.textContent = current.join("");
+      index++;
+    }, 50);
+  }, 100);
 }
 
+function unscramble(target, length) {
+  const maxLength = length; // сохраняем длину от предыдущей анимации
+  let current = Array.from(title.textContent.padEnd(maxLength));
+  let final = Array.from(target.padEnd(maxLength)); // Расширим "Matter", чтобы совпало
+  let index = 0;
 
-function startGlitchCycle() {
-  const randomPhrase = glitchPhrases[Math.floor(Math.random() * glitchPhrases.length)];
-  glitchLetterEffect(title, randomPhrase, 20);
+  const unscrambleInterval = setInterval(() => {
+    if (index >= maxLength) {
+      clearInterval(unscrambleInterval);
+      setTimeout(glitchTextCycle, 6000);
+      return;
+    }
+
+    let display = [...current];
+    display[index] = chars[Math.floor(Math.random() * chars.length)];
+    title.textContent = display.join("");
+
+    setTimeout(() => {
+      current[index] = final[index];
+      title.textContent = current.join("");
+      index++;
+    }, 50);
+  }, 100);
 }
 
-// стартуем чуть позже
-setTimeout(startGlitchCycle, 3000);
+// Стартуем
+setTimeout(glitchTextCycle, 4000);
+
+
+
 
 // === Старт игры ===
 loadGame();
