@@ -2,6 +2,8 @@
 
 An idle/incremental web game built with HTML, CSS and JavaScript, inspired by Antimatter Dimensions. Generate Matter, buy Generators, prestige via Distillation to earn permanent upgrades, and eventually perform Reality Merges for ever‑greater boosts.
 
+The project is also hosted on itch.io! Go check it: https://swino4ka.itch.io/matter
+
 ## Table of Contents
 
 - [Demo](#demo)  
