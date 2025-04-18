@@ -62,7 +62,7 @@ const allAchievements = [
   },
   {
     id: "matter1b",
-    title: "Дальше — только звёзды",
+    title: "Дальше - только звёзды",
     description: "Накопи 1,000,000,000 материи",
     condition: () => matter >= 1_000_000_000
   },
@@ -80,7 +80,7 @@ const allAchievements = [
   },
   {
     id: "firstReality",
-    title: "Реальность — это иллюзия",
+    title: "Реальность - это иллюзия",
     description: "Слей свою первую реальность",
     condition: () => realityResets >= 1
   },
@@ -92,7 +92,7 @@ const allAchievements = [
   },
   {
     id: "comeBackNextDay",
-    title: "Новый день — новые материи",
+    title: "Новый день - новые материи",
     description: "Зайди в игру спустя сутки",
     condition: () => Date.now() - lastSessionTime > 24 * 60 * 60 * 1000
   },
@@ -199,7 +199,6 @@ function formatNumber(num) {
   return Math.floor(num).toString();
 }
 
-// === Обновление UI ===
 function updateUI() {
   document.getElementById("matter").textContent = formatNumber(Math.floor(matter));
 
@@ -362,7 +361,7 @@ function spawnAchievementConfetti() {
 }
 
 function calculateDistillPoints() {
-    const threshold = 1e5; // стартовая цена
+    const threshold = 1e5; 
     const base = matter / threshold;
     return base >= 1 ? Math.floor(Math.pow(base, 0.5)) : 0;
 }
@@ -556,7 +555,7 @@ const tabs = {
       <button id="exportBtn">📤 Экспорт</button>
       <button id="importBtn">📥 Импорт</button>
       <input type="text" id="importField" placeholder="Вставьте сохранение" style="width:100%; margin-top: 10px;" />
-      <p style="margin-top: 10px;">Последнее сохранение: <span id="lastSavedTime">—</span></p>
+      <p style="margin-top: 10px;">Последнее сохранение: <span id="lastSavedTime">-</span></p>
     `
 };
 
@@ -686,7 +685,6 @@ function buyGenerator(index, amount = 1) {
       gen.cost = Math.floor(gen.cost * 1.5 * distillUpgrades.costReduction);
       bought++;
 
-      // Открытие следующего генератора
       if (generators[index + 1] && !generators[index + 1].unlocked) {
         generators[index + 1].unlocked = true;
       }
@@ -799,10 +797,6 @@ function performDistill() {
   matter = 0;
   
   showDistillEffect();
-
-  // можно обнулить статистику по желанию
-  // totalMatter = 0;
-
   updateUI();
   renderGenerators();
 }
@@ -954,8 +948,6 @@ function updateRealityShopUI() {
     list.appendChild(li);
   });
   
-
-  // Обновим количество слияний
   const counter = document.getElementById("realityShopResets");
   if (counter) counter.textContent = realityResets;
 }
@@ -1084,7 +1076,6 @@ function performRealityReset() {
     realityResets++;
     realityBoost *= currentMult;
 
-    // Сброс
     matter = 0;
     distillPoints = 0;
     distillUpgrades = {
@@ -1098,17 +1089,13 @@ function performRealityReset() {
       g.unlocked = i === 0;
     });
 
-    // если активен старт с генераторами
     if (distillUpgrades.startWithGen1) {
         generators[0].amount = distillUpgrades.startWithGen1;
     }
   
-
-    // Обновления
     updateUI();
     renderGenerators();
     saveGame();
-
     setTimeout(() => {
       vortex.classList.add("hidden");
       alert("Ты слил реальность. Всё... начинается заново. Но с бустом ✨");
@@ -1133,9 +1120,20 @@ const glitchPhrases = [
   "Вы достигли ∞",
   "Измерения антиматерии...",
   "Реальность разрушается...",
-  "Ничто вечно",
+  "Ничто не вечно",
   "Вращение галактик нарушено",
-  "404: Вселенная не найдена"
+  "404: Вселенная не найдена",
+  "Сбой в матрице",
+  "Симуляция завершена",
+  "Параллельные миры",
+  "Время и пространство",
+  "Сквозь пространство и время",
+  "Сброс реальности",
+  "Проблемы с загрузкой",
+  "Ошибка: Неизвестная ошибка",
+  "Параллельные измерения",
+  "Проблемы с загрузкой",
+  "Сбой в матрице"
 ];
 
 const title = document.getElementById("glitchTitle");
@@ -1170,9 +1168,9 @@ function glitchTextCycle() {
 }
 
 function unscramble(target, length) {
-  const maxLength = length; // сохраняем длину от предыдущей анимации
+  const maxLength = length; 
   let current = Array.from(title.textContent.padEnd(maxLength));
-  let final = Array.from(target.padEnd(maxLength)); // Расширим "Matter", чтобы совпало
+  let final = Array.from(target.padEnd(maxLength)); 
   let index = 0;
 
   const unscrambleInterval = setInterval(() => {
@@ -1194,13 +1192,7 @@ function unscramble(target, length) {
   }, 100);
 }
 
-// Стартуем
 setTimeout(glitchTextCycle, 4000);
-
-
-
-
-// === Старт игры ===
 loadGame();
 renderGenerators();
 updateUI();
