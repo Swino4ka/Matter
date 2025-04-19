@@ -1,3 +1,7 @@
+const title = document.getElementById("glitchTitle");
+const original = "Matter";
+const chars = "!@#$%^&*()_+-=[]{}|;:,.<>?/\\ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+
 let matter = 0;
 let totalMatter = 0;
 let maxMatter = 0;
@@ -303,6 +307,81 @@ function saveGame() {
   console.log("Игра сохранена!");
 }
 
+function loadGame() {
+  const save = localStorage.getItem("matterSave");
+  if (save) {
+    const data = JSON.parse(save);
+
+    matter = data.matter || 0;
+    totalMatter = data.totalMatter || 0;
+    achievements = data.achievements || {};
+    lastActivityTime = data.lastActivityTime || Date.now();
+    statTabOpened = data.statTabOpened || 0;
+    achHoverCount = data.achHoverCount || 0;
+    uselessClicks = data.uselessClicks || 0;
+    lastDistillTime = data.lastDistillTime || 0;
+    sessionCount = data.sessionCount || 1;
+    lastSessionTime = data.lastSessionTime || Date.now();
+    clickedAchievementPopup = data.clickedAchievementPopup || false;
+    manualResetUsed = data.manualResetUsed || false;
+    typedAntimatter = data.typedAntimatter || false;
+    maxMatter = data.maxMatter || 0;
+    maxProduction = data.maxProduction || 0;
+    distillPoints = data.distillPoints || 0;
+    hasDistilledOnce = data.hasDistilledOnce || false;
+    realityResets = data.realityResets || 0;
+    realityBoost = data.realityBoost || 1;
+
+    if (realityResets > 0) {
+        document.getElementById("openRealityShopBtn")?.classList.remove("hidden");
+    }      
+
+    if (Array.isArray(data.generators)) {
+      generators.forEach((g, i) => {
+        if (data.generators[i]) {
+          g.amount = data.generators[i].amount || 0;
+          g.cost = data.generators[i].cost || Math.pow(10, i + 1);
+          g.unlocked = data.generators[i].unlocked || false;
+        }
+      });
+    }
+
+    if (distillUpgrades.unlockGen5) {
+        const existingCount = generators.length;
+        const maxToAdd = 3;
+        for (let i = existingCount; i < existingCount + maxToAdd; i++) {
+          generators.push({
+            name: `Генератор ${i + 1}`,
+            amount: 0,
+            cost: Math.pow(10, i + 1),
+            unlocked: false
+          });
+        }
+      }
+      
+
+    distillUpgrades = data.distillUpgrades || {
+      unlockGen5: false,
+      startWithGen1: 0,
+      boostGen1: false,
+      boostGen2: false,
+      boostGen3: false,
+      boostGen4: false,
+      costReduction: 1,
+      unlockHardPrestige: false
+    };
+
+    if (hasDistilledOnce) {
+      document.getElementById("openShopBtn")?.classList.remove("hidden");
+    }
+
+    updateUI();
+    renderGenerators();
+    setTimeout(updateLastSavedTime, 100);
+    console.log("Игра загружена!");
+  }
+}
+
 function openAchievementModal(id) {
   const ach = allAchievements.find(a => a.id === id);
   if (!ach) return;
@@ -380,7 +459,6 @@ function formatNumber(num) {
   return Math.floor(num);
 }
 
-
 function updateLastSavedTime() {
   const span = document.getElementById("lastSavedTime");
   if (span) {
@@ -388,82 +466,6 @@ function updateLastSavedTime() {
     span.textContent = time;
   }
 }
-
-function loadGame() {
-  const save = localStorage.getItem("matterSave");
-  if (save) {
-    const data = JSON.parse(save);
-
-    matter = data.matter || 0;
-    totalMatter = data.totalMatter || 0;
-    achievements = data.achievements || {};
-    lastActivityTime = data.lastActivityTime || Date.now();
-    statTabOpened = data.statTabOpened || 0;
-    achHoverCount = data.achHoverCount || 0;
-    uselessClicks = data.uselessClicks || 0;
-    lastDistillTime = data.lastDistillTime || 0;
-    sessionCount = data.sessionCount || 1;
-    lastSessionTime = data.lastSessionTime || Date.now();
-    clickedAchievementPopup = data.clickedAchievementPopup || false;
-    manualResetUsed = data.manualResetUsed || false;
-    typedAntimatter = data.typedAntimatter || false;
-    maxMatter = data.maxMatter || 0;
-    maxProduction = data.maxProduction || 0;
-    distillPoints = data.distillPoints || 0;
-    hasDistilledOnce = data.hasDistilledOnce || false;
-    realityResets = data.realityResets || 0;
-    realityBoost = data.realityBoost || 1;
-
-    if (realityResets > 0) {
-        document.getElementById("openRealityShopBtn")?.classList.remove("hidden");
-    }      
-
-    if (Array.isArray(data.generators)) {
-      generators.forEach((g, i) => {
-        if (data.generators[i]) {
-          g.amount = data.generators[i].amount || 0;
-          g.cost = data.generators[i].cost || Math.pow(10, i + 1);
-          g.unlocked = data.generators[i].unlocked || false;
-        }
-      });
-    }
-
-    if (distillUpgrades.unlockGen5) {
-        const existingCount = generators.length;
-        const maxToAdd = 3;
-        for (let i = existingCount; i < existingCount + maxToAdd; i++) {
-          generators.push({
-            name: `Генератор ${i + 1}`,
-            amount: 0,
-            cost: Math.pow(10, i + 1),
-            unlocked: false
-          });
-        }
-      }
-      
-
-    distillUpgrades = data.distillUpgrades || {
-      unlockGen5: false,
-      startWithGen1: 0,
-      boostGen1: false,
-      boostGen2: false,
-      boostGen3: false,
-      boostGen4: false,
-      costReduction: 1,
-      unlockHardPrestige: false
-    };
-
-    if (hasDistilledOnce) {
-      document.getElementById("openShopBtn")?.classList.remove("hidden");
-    }
-
-    updateUI();
-    renderGenerators();
-    setTimeout(updateLastSavedTime, 100);
-    console.log("Игра загружена!");
-  }
-}
-
 
 function autoSaveLoop() {
   setInterval(saveGame, 10000);
@@ -742,7 +744,6 @@ function calculateTotalBoost() {
   return totalBoost;
 }
 
-
 document.getElementById("generateMatterBtn").addEventListener("click", (e) => {
   const gen1 = generators[0];
   const boost = calculateTotalBoost();
@@ -870,8 +871,6 @@ function closeRealityShop() {
   document.getElementById("realityShopModal").classList.add("hidden");
 }
 
-
-
 function calculateDistillPoints() {
   return Math.floor(Math.pow(matter / 1e6, 0.5));
 }
@@ -879,6 +878,7 @@ function calculateDistillPoints() {
 function openDistillInfo() {
   document.getElementById("infoModal").classList.remove("hidden");
 }
+
 function closeDistillInfo() {
   document.getElementById("infoModal").classList.add("hidden");
 }
@@ -1135,11 +1135,6 @@ const glitchPhrases = [
   "Проблемы с загрузкой",
   "Сбой в матрице"
 ];
-
-const title = document.getElementById("glitchTitle");
-
-const original = "Matter";
-const chars = "!@#$%^&*()_+-=[]{}|;:,.<>?/\\ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
 
 function glitchTextCycle() {
   const target = glitchPhrases[Math.floor(Math.random() * glitchPhrases.length)];
