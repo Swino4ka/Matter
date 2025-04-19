@@ -178,6 +178,8 @@ const allAchievements = [
   }  
 ];
 
+let achievements = {};
+
 document.addEventListener("keydown", (e) => {
   inputBuffer = (inputBuffer || "") + e.key.toLowerCase();
   if (inputBuffer.includes("antimatterdimensions") || inputBuffer.includes("измеренияантиматерии")) {
@@ -185,8 +187,6 @@ document.addEventListener("keydown", (e) => {
   }
   if (inputBuffer.length > 50) inputBuffer = inputBuffer.slice(-50);
 });
-
-let achievements = {};
 
 function calculateAchievementBoost() {
   const count = Object.values(achievements).filter(Boolean).length;
