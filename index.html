@@ -8,6 +8,8 @@
 </head>
 <body>
 
+<div id="clickEffects"></div>
+
 <div id="achievementModal" class="modal hidden">
   <div class="modal-content">
     <span class="closeBtn" onclick="closeAchievementModal()">&times;</span>
@@ -49,7 +51,6 @@
   </div>
 </div>
 
-
 <div id="infoModal" class="modal hidden">
   <div class="modal-content">
     <span class="closeBtn" onclick="closeDistillInfo()">&times;</span>
@@ -89,46 +90,44 @@
     </div>
   </div>  
 
-  <div id="clickEffects"></div>
-  <h1 id="glitchTitle">Matter</h1>
-  <div id="gameContainer">
+<h1 id="glitchTitle">Matter</h1>
+<div id="gameContainer">
+  <div id="leftPanel">
+      <section id="manualClickSection">
+          <h2>Материя: <span id="matter">0</span></h2>
+          <p id="matterRate" style="color: #888; font-size: 0.9rem; text-align: center; margin-top: -10px;">Производство: 0/сек</p>
+          <button id="generateMatterBtn">Генерировать материю</button>
+      </section>
+        
+      <div id="generatorsContainer"></div>
+  </div>
     
-    <div id="leftPanel">
-        <section id="manualClickSection">
-            <h2>Материя: <span id="matter">0</span></h2>
-            <p id="matterRate" style="color: #888; font-size: 0.9rem; text-align: center; margin-top: -10px;">Производство: 0/сек</p>
-            <button id="generateMatterBtn">Генерировать материю</button>
-        </section>
-          
-        <div id="generatorsContainer"></div>
+  <div id="rightPanel">
+    <div id="menuTabs">
+      <button class="tabBtn" data-tab="prestige">💠 Престиж</button>
+      <button class="tabBtn" data-tab="achievements">🏆 Достижения</button>
+      <button class="tabBtn" data-tab="stats">📊 Статистика</button>
+      <button class="tabBtn" data-tab="settings">⚙️ Настройки</button>
     </div>
-      
-    <div id="rightPanel">
-      <div id="menuTabs">
-        <button class="tabBtn" data-tab="prestige">💠 Престиж</button>
-        <button class="tabBtn" data-tab="achievements">🏆 Достижения</button>
-        <button class="tabBtn" data-tab="stats">📊 Статистика</button>
-        <button class="tabBtn" data-tab="settings">⚙️ Настройки</button>
-      </div>
-      <div id="tabContent">
-        <p>Выберите вкладку справа.</p>
-      </div>
+    <div id="tabContent">
+      <p>Выберите вкладку справа.</p>
     </div>
   </div>
+</div>
 
-  <footer class="fade-in">
-    <div class="kostylara"><p>✨ Создатель: Swino4ka</p> <a href="https://boosty.to/swino4ka/donate" target="_blank"><img class="boosty" src="https://img.shields.io/badge/Support_on_Boosty-F9690E?style=for-the-badge&logo=boosty&logoColor=white" alt="Поддержать на Boosty"></a></div>
-    <div class="links">
-      <a href="https://discord.com/users/472393576010088449">Discord</a>
-      <a href="https://t.me/Swino4ka">Telegram</a>
-      <a href="mailto:rybalalka@gmail.com">Gmail</a>
-      <a href="https://steamcommunity.com/profiles/76561198806638670/">Steam</a>
-      <a href="https://www.youtube.com/@swino4ka">YouTube</a>
-      <a href="https://www.linkedin.com/in/oleksandr-kvartiuk-b24171265">LinkedIn</a>
-      <a href="https://github.com/Swino4ka">GitHub</a>
-    </div>
-    <br>
-  </footer>
+<footer class="fade-in">
+  <div class="kostylara"><p>✨ Создатель: Swino4ka</p> <a href="https://boosty.to/swino4ka/donate" target="_blank"><img class="boosty" src="https://img.shields.io/badge/Support_on_Boosty-F9690E?style=for-the-badge&logo=boosty&logoColor=white" alt="Поддержать на Boosty"></a></div>
+  <div class="links">
+    <a href="https://discord.com/users/472393576010088449">Discord</a>
+    <a href="https://t.me/Swino4ka">Telegram</a>
+    <a href="mailto:rybalalka@gmail.com">Gmail</a>
+    <a href="https://steamcommunity.com/profiles/76561198806638670/">Steam</a>
+    <a href="https://www.youtube.com/@swino4ka">YouTube</a>
+    <a href="https://www.linkedin.com/in/oleksandr-kvartiuk-b24171265">LinkedIn</a>
+    <a href="https://github.com/Swino4ka">GitHub</a>
+  </div>
+  <br>
+</footer>
 
   <script src="js.js"></script>
 </body>
