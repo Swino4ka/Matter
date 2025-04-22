@@ -59,6 +59,20 @@ button:active {
   transform: translateY(0);
 }
 
+section {
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: rgba(35, 40, 54, 0.95);
+  border: 1px solid #2c3347;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+}
+
+section h2 {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+}
+
 #openMenuBtn {
   position: fixed;
   top: 20px;
@@ -202,20 +216,6 @@ button:active {
   border-radius: 8px;
   border: 1px solid #2c3347;
   min-height: 200px;
-}
-
-section {
-  margin-bottom: 20px;
-  padding: 15px;
-  border-radius: 8px;
-  background-color: rgba(35, 40, 54, 0.95);
-  border: 1px solid #2c3347;
-  box-shadow: 0 0 8px rgba(0,0,0,0.1);
-}
-
-section h2 {
-  font-size: 1.1rem;
-  margin-bottom: 12px;
 }
 
 #clickEffects {
