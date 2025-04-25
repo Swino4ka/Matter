@@ -24,6 +24,8 @@ const glitchPhrases = [
   "Проблемы с загрузкой",
   "Сбой в матрице"
 ];
+const tabButtons = document.querySelectorAll(".tabBtn");
+const tabContent = document.getElementById("tabContent");
 
 let matter = 0;
 let totalMatter = 0;
@@ -493,9 +495,6 @@ function updateLastSavedTime() {
 function autoSaveLoop() {
   setInterval(saveGame, 10000);
 }
-
-const tabButtons = document.querySelectorAll(".tabBtn");
-const tabContent = document.getElementById("tabContent");
 
 const tabs = {
     prestige: () => {
