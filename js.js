@@ -52,6 +52,7 @@ let lastSessionTime = Date.now();
 let clickedAchievementPopup = false;
 let manualResetUsed = false;
 let typedAntimatter = false;
+
 let distillUpgrades = {
   unlockGen5: false,
   boostGen1: false,
