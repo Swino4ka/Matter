@@ -616,6 +616,32 @@ footer a:hover {
   background: linear-gradient(90deg, #6f9, #3c6);
   transition: width 0.3s ease;
 }
+
+.boosty {
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
+
+.kostylara {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.kostylara img {
+  margin: 0;
+}
+
+#glitchTitle {
+  font-family: 'Orbitron', monospace;
+  font-size: 48px;
+  color: #aaa0ff;
+  letter-spacing: 2px;
+  transition: color 0.3s ease;
+}
+
 #realityCollapseAnimation {
   position: fixed;
   inset: 0;
