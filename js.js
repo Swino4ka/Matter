@@ -214,6 +214,80 @@ document.addEventListener("keydown", (e) => {
   if (inputBuffer.length > 50) inputBuffer = inputBuffer.slice(-50);
 });
 
+document.addEventListener("click", (e) => {
+  const id = e.target.id;
+  lastActivityTime = Date.now();
+
+  if (e.target.classList.contains("ach-popup")) {
+    clickedAchievementPopup = true;
+  }
+
+  if (!e.target.closest(".modal, .ach-box, button, .tabBtn, section")) {
+    uselessClicks++;
+  }  
+
+  if (id === "saveNowBtn") {
+    saveGame();
+    alert("Игра сохранена!");
+  }
+
+  if (id === "resetBtn") {
+    if (confirm("Ты уверен, что хочешь сбросить весь прогресс?")) {
+        matter = 0;
+        totalMatter = 0;
+        maxMatter = 0;
+        maxProduction = 0;
+        distillPoints = 0;
+        hasDistilledOnce = false;
+        matter = 0;
+        distillPoints = 0;
+        distillUpgrades = {
+          boostGen1: false,
+          unlockHardPrestige: false
+        };
+        generators.forEach((g, i) => {
+        g.amount = 0;
+        g.cost = Math.pow(10, i + 1);
+        g.unlocked = i === 0;
+        });
+
+        saveGame();
+        renderGenerators();
+        updateUI();
+
+        achievements = {};
+        statTabOpened = 0;
+        achHoverCount = 0;
+        uselessClicks = 0;
+        clickedAchievementPopup = false;
+        typedAntimatter = false;
+        manualResetUsed = true;
+        saveGame();
+//      localStorage.removeItem("matterSave");
+//      location.reload();
+    }
+  }
+
+  if (id === "exportBtn") {
+    const saveData = localStorage.getItem("matterSave");
+    navigator.clipboard.writeText(saveData).then(() => {
+      alert("Сохранение скопировано в буфер обмена!");
+    });
+  }
+
+  if (id === "importBtn") {
+    const importStr = document.getElementById("importField").value;
+    try {
+      const parsed = JSON.parse(importStr);
+      localStorage.setItem("matterSave", JSON.stringify(parsed));
+      alert("Сохранение импортировано! Перезагружаем...");
+      location.reload();
+    } catch {
+      alert("Невозможно импортировать. Неверный формат!");
+    }
+  }
+});
+
 function calculateAchievementBoost() {
   const count = Object.values(achievements).filter(Boolean).length;
   return 1 + 0.1 * count;
@@ -590,80 +664,6 @@ tabButtons.forEach(btn => {
     tabContent.innerHTML = typeof tabs[tab] === "function" ? tabs[tab]() : tabs[tab];
     if (tab === "stats") statTabOpened++;
   });
-});
-
-document.addEventListener("click", (e) => {
-  const id = e.target.id;
-  lastActivityTime = Date.now();
-
-  if (e.target.classList.contains("ach-popup")) {
-    clickedAchievementPopup = true;
-  }
-
-  if (!e.target.closest(".modal, .ach-box, button, .tabBtn, section")) {
-    uselessClicks++;
-  }  
-
-  if (id === "saveNowBtn") {
-    saveGame();
-    alert("Игра сохранена!");
-  }
-
-  if (id === "resetBtn") {
-    if (confirm("Ты уверен, что хочешь сбросить весь прогресс?")) {
-        matter = 0;
-        totalMatter = 0;
-        maxMatter = 0;
-        maxProduction = 0;
-        distillPoints = 0;
-        hasDistilledOnce = false;
-        matter = 0;
-        distillPoints = 0;
-        distillUpgrades = {
-          boostGen1: false,
-          unlockHardPrestige: false
-        };
-        generators.forEach((g, i) => {
-        g.amount = 0;
-        g.cost = Math.pow(10, i + 1);
-        g.unlocked = i === 0;
-        });
-
-        saveGame();
-        renderGenerators();
-        updateUI();
-
-        achievements = {};
-        statTabOpened = 0;
-        achHoverCount = 0;
-        uselessClicks = 0;
-        clickedAchievementPopup = false;
-        typedAntimatter = false;
-        manualResetUsed = true;
-        saveGame();
-//      localStorage.removeItem("matterSave");
-//      location.reload();
-    }
-  }
-
-  if (id === "exportBtn") {
-    const saveData = localStorage.getItem("matterSave");
-    navigator.clipboard.writeText(saveData).then(() => {
-      alert("Сохранение скопировано в буфер обмена!");
-    });
-  }
-
-  if (id === "importBtn") {
-    const importStr = document.getElementById("importField").value;
-    try {
-      const parsed = JSON.parse(importStr);
-      localStorage.setItem("matterSave", JSON.stringify(parsed));
-      alert("Сохранение импортировано! Перезагружаем...");
-      location.reload();
-    } catch {
-      alert("Невозможно импортировать. Неверный формат!");
-    }
-  }
 });
 
 const generators = [
