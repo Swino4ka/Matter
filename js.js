@@ -160,13 +160,15 @@ const allAchievements = [
     id: "statClicker",
     title: "Цифры… везде цифры",
     description: "Открой вкладку статистики 10 раз",
-    condition: () => statTabOpened >= 10
+    condition: () => statTabOpened >= 10,
+    type: "secret"
   },  
   {
     id: "hover50times",
     title: "Любопытный",
     description: "Наведи на достижения 50 раз",
-    condition: () => achHoverCount >= 50
+    condition: () => achHoverCount >= 50,
+    type: "secret"
   },  
   {
     id: "afkMaster",
